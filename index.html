@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Der Trainer – Lösungswege Schritt für Schritt selbst kontrollieren</title>
+<meta name="description" content="Aus einem Arbeitsblatt wird ein interaktiver Trainer: Die Kinder üben im eigenen Tempo und kontrollieren ihren Lösungsweg Schritt für Schritt – in Mathematik, Latein und jedem Fach mit festen Verfahren. Ein Fobizz-Assistent schreibt den Code, ein Baukasten im Browser macht daraus eine Datei.">
+<meta name="author" content="Andreas Hemmeter">
+<meta property="og:title" content="Der Trainer – Lösungswege Schritt für Schritt selbst kontrollieren">
+<meta property="og:description" content="Interaktive Trainer aus dem eigenen Material – für Mathematik, Latein und jedes Fach mit festen Verfahren: Schritt-für-Schritt-Kontrolle im eigenen Tempo, auf dem iPad oder an der Tafel. Mit einem Fobizz-Assistenten und einem Baukasten im Browser. Ohne Programmieren, ohne Schülerdaten.">
+<meta property="og:type" content="article">
+<link rel="canonical" href="https://andreas-hemmeter.de/Trainer/">
+<meta property="og:url" content="https://andreas-hemmeter.de/Trainer/">
+<meta property="og:image" content="https://andreas-hemmeter.de/Trainer/bilder/abb01_vorfuehrer.png">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+/* ───────── Die Lernschleife · editorial ───────── */
+:root {
+  --bg: #fbfaf7;
+  --bg-2: #f2efe8;
+  --ink: #1c1b18;
+  --ink-2: #4a4843;
+  --ink-3: #7c7972;
+  --line: rgba(28,27,24,0.12);
+  --accent: #1f4e79;
+  --accent-soft: rgba(31,78,121,0.09);
+  --accent-ink: #163a5c;
+  --card: #ffffff;
+  --shadow: 0 1px 2px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06);
+  --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, "Charter", "Georgia", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --measure: 46rem;
+  --node-bg: #ffffff;
+}
+:root[data-theme="dark"] {
+  --bg: #16171a;
+  --bg-2: #1e2024;
+  --ink: #ebe8e1;
+  --ink-2: #c3bfb6;
+  --ink-3: #8c8981;
+  --line: rgba(235,232,225,0.14);
+  --accent: #8fb6de;
+  --accent-soft: rgba(143,182,222,0.12);
+  --accent-ink: #b7d2ee;
+  --card: #1e2024;
+  --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 30px rgba(0,0,0,0.45);
+  --node-bg: #23262b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16171a; --bg-2: #1e2024; --ink: #ebe8e1; --ink-2: #c3bfb6; --ink-3: #8c8981;
+    --line: rgba(235,232,225,0.14); --accent: #8fb6de; --accent-soft: rgba(143,182,222,0.12);
+    --accent-ink: #b7d2ee; --card: #1e2024;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 30px rgba(0,0,0,0.45); --node-bg: #23262b;
+  }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--serif); font-size: 1.125rem; line-height: 1.68;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent-ink); text-decoration-thickness: 1px; text-underline-offset: 0.14em; }
+a:hover { color: var(--accent); }
+img { max-width: 100%; height: auto; display: block; }
+button { font: inherit; }
+
+/* Fortschritt */
+.progress { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: var(--accent); z-index: 50; transition: width 0.1s linear; }
+
+/* Kopf */
+.kopf { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(1.2) blur(10px); border-bottom: 1px solid var(--line); }
+.kopf-inner { max-width: 72rem; margin: 0 auto; padding: 0.7rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.marke { font-family: var(--sans); font-weight: 600; letter-spacing: 0.02em; text-decoration: none; color: var(--ink); font-size: 0.95rem; }
+.kopf-nav { display: flex; align-items: center; gap: 1rem; font-family: var(--sans); font-size: 0.9rem; }
+.kopf-nav a { text-decoration: none; color: var(--ink-2); }
+.kopf-nav a:hover { color: var(--accent); }
+.theme { background: none; border: 1px solid var(--line); border-radius: 999px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-2); cursor: pointer; }
+.theme:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Titel */
+.artikel { max-width: 72rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
+.titel { max-width: var(--measure); margin: 3.5rem auto 2.5rem; text-align: left; }
+.kicker { font-family: var(--sans); font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 1rem; }
+.kicker a { color: inherit; }
+h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(2rem, 4.2vw, 3rem); line-height: 1.12; letter-spacing: -0.012em; margin: 0 0 1.1rem; }
+.untertitel { font-size: 1.25rem; line-height: 1.5; color: var(--ink-2); margin: 0 0 1.4rem; }
+.meta { font-family: var(--sans); font-size: 0.9rem; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0; padding-top: 1rem; border-top: 1px solid var(--line); }
+
+/* Layout mit Seitenleiste */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+@media (min-width: 64rem) {
+  .layout { grid-template-columns: 15rem minmax(0, var(--measure)); justify-content: center; gap: 3.5rem; }
+  .seite { position: sticky; top: 4.5rem; align-self: start; }
+}
+.toc { font-family: var(--sans); font-size: 0.9rem; }
+.toc-titel { margin: 0 0 0.6rem; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.toc ol { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--line); }
+.toc li a { display: flex; gap: 0.6rem; padding: 0.35rem 0.8rem; color: var(--ink-2); text-decoration: none; border-left: 2px solid transparent; margin-left: -2px; line-height: 1.35; }
+.toc li a:hover { color: var(--accent); }
+.toc li a.aktiv { color: var(--accent-ink); border-left-color: var(--accent); font-weight: 600; }
+.toc .nr { color: var(--ink-3); min-width: 1.1em; font-variant-numeric: tabular-nums; }
+.toc-btns { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.toc-btns button { background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 0.35rem 0.85rem; font-size: 0.8rem; color: var(--ink-2); cursor: pointer; }
+.toc-btns button:hover { border-color: var(--accent); color: var(--accent); }
+@media (max-width: 63.99rem) {
+  .seite { max-width: var(--measure); margin: 0 auto; width: 100%; }
+  .toc { background: var(--bg-2); border-radius: 14px; padding: 1rem 1.1rem; }
+  .toc ol { border-left: 0; columns: 2; column-gap: 1.5rem; }
+  .toc li { break-inside: avoid; }
+  .toc li a { border-left: 0; margin-left: 0; padding: 0.25rem 0; }
+}
+@media (max-width: 36rem) { .toc ol { columns: 1; } }
+
+/* Fließtext */
+.text { max-width: var(--measure); margin: 0 auto; width: 100%; min-width: 0; }
+.text p { margin: 0 0 1.25rem; }
+.vorspann p:first-child::first-letter { font-size: 3.4em; float: left; line-height: 0.82; padding: 0.08em 0.12em 0 0; font-weight: 600; color: var(--accent); }
+.vorspann { margin-bottom: 1.5rem; }
+strong { font-weight: 600; }
+a.ref { text-decoration: none; border-bottom: 1px dotted var(--accent); color: var(--accent-ink); }
+a.ref:hover { border-bottom-style: solid; }
+
+/* Aufklappbare Kapitel */
+.kapitel { border-top: 1px solid var(--line); margin: 0; }
+.kapitel:last-of-type { border-bottom: 1px solid var(--line); }
+.kapitel summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 0.9rem; padding: 1.15rem 0; position: relative; }
+.kapitel summary::-webkit-details-marker { display: none; }
+.kapitel summary:hover h2 { color: var(--accent); }
+.kapitel summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.kapitel h2 { font-family: var(--serif); font-weight: 600; font-size: 1.45rem; line-height: 1.25; margin: 0; flex: 1; letter-spacing: -0.005em; transition: color 0.2s; }
+.knr { font-family: var(--sans); font-size: 0.8rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; width: 1.7rem; height: 1.7rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; align-self: center; }
+.chev { width: 0.6rem; height: 0.6rem; border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3); transform: rotate(-45deg); transition: transform 0.25s; flex-shrink: 0; align-self: center; margin-right: 0.3rem; }
+.kapitel[open] .chev { transform: rotate(45deg); }
+.kapitel .inhalt { padding: 0.25rem 0 1.5rem; }
+@media (min-width: 40rem) { .kapitel .inhalt { padding-left: 2.6rem; } }
+.kapitel[open] .inhalt { animation: auf 0.35s ease-out; }
+@keyframes auf { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .kapitel[open] .inhalt { animation: none; } }
+
+/* Abbildungen */
+figure.abb { margin: 1.75rem 0 2rem; }
+figure.abb a.zoom { display: block; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--card); box-shadow: var(--shadow); cursor: zoom-in; }
+figure.abb a.zoom img { width: 100%; }
+figure.abb figcaption { font-family: var(--sans); font-size: 0.88rem; line-height: 1.5; color: var(--ink-2); margin-top: 0.7rem; padding-left: 0.85rem; border-left: 2px solid var(--accent); }
+.abbnr { font-weight: 600; color: var(--accent-ink); }
+.svgwrap { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem 0.5rem; box-shadow: var(--shadow); }
+.ls-svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
+.ls-svg text { fill: var(--ink); }
+.ls-svg .ls-nodebg { fill: var(--node-bg); }
+.ls-svg .ls-ntitle { font-size: 24px; font-weight: 600; }
+.ls-svg .ls-nsub { font-size: 18px; fill: var(--ink-2); }
+.ls-svg .ls-icon { font-size: 34px; }
+.ls-svg .ls-step { font-size: 15px; font-weight: 700; fill: #fff; }
+.ls-svg .ls-arrowlabel { font-size: 18px; font-weight: 600; fill: var(--accent); }
+.ls-svg .ls-center-title { font-family: var(--serif); font-size: 44px; font-weight: 600; }
+.ls-svg .ls-center-sub { font-size: 20px; fill: var(--ink-2); }
+.ls-svg .ls-legend-t { font-size: 18px; fill: var(--ink-2); font-weight: 500; }
+a.zoom-svg { display: block; text-decoration: none; cursor: zoom-in; }
+@media (min-width: 80rem) { figure#abb1 { margin-right: -9rem; } }
+.ls-svg path[stroke] { stroke: var(--accent); }
+.ls-svg polygon[fill="#0071e3"] { fill: var(--accent); }
+
+/* Autor, Literatur, Hinweis */
+.autor { display: flex; gap: 1rem; align-items: flex-start; background: var(--bg-2); border-radius: 14px; padding: 1.25rem 1.4rem; margin: 2.5rem 0 1.5rem; font-size: 1rem; color: var(--ink-2); }
+.autor p { margin: 0; }
+.autor-initialen { flex-shrink: 0; width: 3rem; height: 3rem; border-radius: 50%; background: var(--accent); color: #fff; font-family: var(--sans); font-weight: 700; display: flex; align-items: center; justify-content: center; letter-spacing: 0.04em; }
+.literatur h2 { font-size: 1.2rem; }
+.lit { margin: 0; padding-left: 1.2rem; font-size: 0.98rem; color: var(--ink-2); }
+.lit li { margin-bottom: 0.6rem; padding-left: 0.2rem; }
+.lizenz { font-family: var(--sans); font-size: 0.88rem; color: var(--ink-3); margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.lizenz p { margin: 0 0 0.6rem; }
+
+/* Fuß */
+.fuss { border-top: 1px solid var(--line); font-family: var(--sans); font-size: 0.85rem; color: var(--ink-3); }
+.fuss-inner { max-width: 72rem; margin: 0 auto; padding: 1.25rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.fuss a { color: inherit; }
+.nach-oben { position: fixed; right: 1.1rem; bottom: 1.1rem; width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); box-shadow: var(--shadow); cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 30; }
+.nach-oben.sichtbar { opacity: 1; pointer-events: auto; }
+
+/* Lightbox */
+.lightbox { border: 0; padding: 0; background: transparent; max-width: min(96vw, 1600px); max-height: 96vh; }
+.lightbox::backdrop { background: rgba(10,10,12,0.86); backdrop-filter: blur(4px); }
+.lightbox img { max-width: min(96vw, 1600px); max-height: 84vh; width: auto; height: auto; margin: 0 auto; border-radius: 8px; background: #fff; }
+.lightbox p { font-family: var(--sans); color: #eee; text-align: center; font-size: 0.95rem; margin: 0.8rem auto 0; max-width: 60rem; }
+.lb-close { position: fixed; top: 0.8rem; right: 1rem; width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 0; background: rgba(255,255,255,0.15); color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.lb-close:hover { background: rgba(255,255,255,0.3); }
+
+/* Druck */
+@media print {
+  .kopf, .progress, .nach-oben, .toc-btns, .theme, .seite { display: none !important; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .kapitel .inhalt { display: block !important; }
+  .kapitel summary { break-after: avoid; }
+  figure.abb { break-inside: avoid; }
+  figure.abb a.zoom { box-shadow: none; }
+  a { color: inherit; text-decoration: none; }
+}
+
+/* Logo */
+:root { --logo-a: #8fb6de; }
+:root[data-theme="dark"] { --logo-a: #1f4e79; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --logo-a: #1f4e79; } }
+.logo { width: 28px; height: 28px; display: block; flex-shrink: 0; }
+.logo .h { fill: var(--accent); } .logo .a { stroke: var(--logo-a); }
+.marke { display: inline-flex; align-items: center; gap: 0.6rem; }
+.logo-kachel { width: 3rem; height: 3rem; border-radius: 12px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.logo-kachel .logo { width: 2.3rem; height: 2.3rem; } .logo-kachel .logo .h { fill: #fff; } .logo-kachel .logo .a { stroke: #8fb6de; }
+
+
+.an .text h2 { font-family: var(--serif); font-weight: 600; font-size: 1.45rem; line-height: 1.25; margin: 2.6rem 0 0.8rem; letter-spacing: -0.005em; }
+.an .text h3 { font-family: var(--sans); font-size: 1rem; font-weight: 600; margin: 1.4rem 0 0.4rem; color: var(--accent-ink); }
+.an .text ul, .an .text ol { padding-left: 1.3rem; } .an .text li { margin-bottom: 0.45rem; }
+.an .text code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; background: var(--bg-2); padding: 0.1em 0.35em; border-radius: 4px; }
+.an .text table { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: 0.92rem; margin: 1rem 0 1.5rem; }
+.an .text th, .an .text td { text-align: left; vertical-align: top; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--line); }
+.an .text th { font-weight: 600; color: var(--ink-2); font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.knopf { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--sans); font-size: 0.9rem; font-weight: 600; color: #fff; background: var(--accent); border-radius: 999px; padding: 0.45rem 1rem; text-decoration: none; }
+.knopf:hover { background: var(--accent-ink); color: #fff; }
+.knopf.leicht { color: var(--accent-ink); background: var(--accent-soft); }
+.knopf.leicht:hover { color: #fff; background: var(--accent); }
+.knopfreihe { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.6rem 0 0.2rem; }
+.werkzeuge { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.9rem; margin: 1rem 0 0.5rem; }
+.werkzeug { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem 1.1rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 0.35rem; }
+.werkzeug .art { font-family: var(--sans); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.an .text .werkzeug h3 { margin: 0; font-family: var(--serif); font-size: 1.15rem; color: var(--ink); }
+.werkzeug p { font-size: 0.95rem; line-height: 1.5; color: var(--ink-2); margin: 0 0 0.3rem; flex: 1; }
+.werkzeug .knopf { align-self: flex-start; }
+.an .text .schritte { list-style: none; padding: 0; margin: 1.2rem 0 1.5rem; display: grid; gap: 1rem; counter-reset: s; }
+.schritt { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.3rem 1.2rem 1.3rem; box-shadow: var(--shadow); position: relative; }
+.schritt .kopfzeile { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.schritt .nr { font-family: var(--sans); font-size: 0.9rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 999px; width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.an .text .schritt h3 { margin: 0; font-family: var(--serif); font-size: 1.25rem; font-weight: 600; color: var(--ink); flex: 1; }
+.schritt .wo { font-family: var(--sans); font-size: 0.8rem; color: var(--ink-3); }
+.schritt p { margin: 0 0 0.6rem; font-size: 1.02rem; line-height: 1.6; }
+.schritt ol { margin: 0.2rem 0 0.6rem; padding-left: 1.3rem; font-size: 1rem; }
+.schritt .ergebnis { font-family: var(--sans); font-size: 0.9rem; color: var(--ink-2); background: var(--bg-2); border-radius: 10px; padding: 0.55rem 0.8rem; margin: 0.6rem 0 0.2rem; }
+.schritt .ueben { font-family: var(--sans); font-size: 0.88rem; color: var(--ink-2); margin: 0.6rem 0 0; padding-left: 0.8rem; border-left: 3px solid var(--ls-app, var(--accent)); }
+.hinweis { font-family: var(--sans); font-size: 0.95rem; background: var(--accent-soft); border-radius: 12px; padding: 0.9rem 1.1rem; margin: 1.2rem 0; }
+.hinweis p:last-child { margin-bottom: 0; }
+.zurueck { font-family: var(--sans); font-size: 0.9rem; margin-top: 2.5rem; }
+@media (max-width: 36rem) { .kopf-nav .nur-breit { display: none; } .kopf-nav a { white-space: nowrap; } }
+
+/* Animierte Lernschleife */
+:root { --ls-ki: #b5651d; --ls-app: #1f7a74; --ls-bycs: var(--accent); --ls-start: #7c7972; --ls-chip-neutral: #3a3a3c; }
+:root[data-theme="dark"] { --ls-ki: #e0a062; --ls-app: #5fc1b9; --ls-chip-neutral: #4a4a4e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ls-ki: #e0a062; --ls-app: #5fc1b9; --ls-chip-neutral: #4a4a4e; } }
+.ls-figur { margin: 1.5rem 0 2rem; }
+@media (min-width: 64rem) { .ls-figur { width: 66rem; max-width: calc(100vw - 2.5rem); margin-left: 50%; transform: translateX(-50%); } .ls-figur figcaption, .ls-steuer { max-width: var(--measure); margin-left: auto; margin-right: auto; } }
+.ls-figur .svgwrap { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem 0.5rem; box-shadow: var(--shadow); }
+.ls-anim .ls-track { stroke: var(--accent); }
+.ls-anim .ls-chev { fill: var(--accent); }
+.ls-anim .ls-ring, .ls-anim .ls-nodebg { stroke: var(--ls-start); }
+.ls-anim .ls-fill, .ls-anim .ls-badge { fill: var(--ls-start); }
+.ls-anim .ls-ki .ls-ring, .ls-anim .ls-ki .ls-nodebg { stroke: var(--ls-ki); } .ls-anim .ls-ki .ls-fill, .ls-anim .ls-ki .ls-badge { fill: var(--ls-ki); }
+.ls-anim .ls-app .ls-ring, .ls-anim .ls-app .ls-nodebg { stroke: var(--ls-app); } .ls-anim .ls-app .ls-fill, .ls-anim .ls-app .ls-badge { fill: var(--ls-app); }
+.ls-anim .ls-bycs .ls-ring, .ls-anim .ls-bycs .ls-nodebg { stroke: var(--ls-bycs); } .ls-anim .ls-bycs .ls-fill, .ls-anim .ls-bycs .ls-badge { fill: var(--ls-bycs); }
+.ls-anim .ls-badge { fill: var(--accent); }
+.ls-anim .ls-step { font-size: 16px; font-weight: 700; fill: #fff; }
+.ls-anim .ls-dot-ki { fill: var(--ls-ki); font-size: 20px; } .ls-anim .ls-dot-app { fill: var(--ls-app); font-size: 20px; } .ls-anim .ls-dot-bycs { fill: var(--ls-bycs); font-size: 20px; }
+.ls-anim .ls-ring { transform-box: fill-box; transform-origin: center; }
+.ls-anim .ls-link { cursor: pointer; } .ls-anim .ls-link:hover .ls-nodebg { stroke-width: 6; } .ls-anim .ls-link:focus-visible { outline: none; } .ls-anim .ls-link:focus-visible .ls-nodebg { stroke-width: 6; }
+.ls-anim .ls-token { pointer-events: none; }
+.ls-anim .ls-token-text { font-size: 17px; font-weight: 700; fill: #fff; dominant-baseline: central; }
+.ls-anim .ls-chip-in { transform-box: fill-box; transform-origin: center; }
+.ls-anim .ls-tok-a { fill: var(--accent); }
+.ls-steuer { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.7rem; font-family: var(--sans); font-size: 0.9rem; }
+.ls-steuer button { background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.9rem; color: var(--ink-2); cursor: pointer; }
+.ls-steuer button:hover { border-color: var(--accent); color: var(--accent); }
+.ls-steuer button.primär { background: var(--accent); color: #fff; border-color: var(--accent); }
+.ls-steuer button.primär:hover { background: var(--accent-ink); }
+.ls-steuer .ls-stand { color: var(--ink-3); margin-left: auto; }
+.ls-figur figcaption { font-family: var(--sans); font-size: 0.88rem; line-height: 1.5; color: var(--ink-2); margin-top: 0.7rem; padding-left: 0.85rem; border-left: 2px solid var(--accent); }
+@media (max-width: 40rem) { .ls-figur .svgwrap { overflow-x: auto; -webkit-overflow-scrolling: touch; } .ls-anim { min-width: 640px; } .ls-figur figcaption::before { content: "Grafik seitlich verschiebbar. "; color: var(--ink-3); } }
+
+/* Ergänzungen für den Tutor-Beitrag */
+.an .text .fluss { margin: 1.6rem 0 2rem; }
+.an .text .fluss svg { width: 100%; height: auto; display: block; }
+.an .text .fluss figcaption { font-family: var(--sans); font-size: 0.88rem; line-height: 1.5; color: var(--ink-2); margin-top: 0.7rem; padding-left: 0.85rem; border-left: 2px solid var(--accent); }
+.fl-box { fill: var(--card); stroke: var(--accent); stroke-width: 1.5; }
+.fl-box.fest { stroke-dasharray: 5 4; }
+.fl-t { font-family: var(--sans); font-size: 14.5px; font-weight: 600; fill: var(--ink); }
+.fl-s { font-family: var(--sans); font-size: 12px; fill: var(--ink-3); }
+.fl-a { stroke: var(--accent); stroke-width: 2; fill: none; }
+.fl-pf { fill: var(--accent); }
+.fl-l { font-family: var(--sans); font-size: 12px; fill: var(--accent-ink); }
+.an .text .nein { list-style: none; padding: 0; margin: 1rem 0 1.5rem; display: grid; gap: 0.6rem; }
+.an .text .nein li { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0.75rem 1rem; font-family: var(--sans); font-size: 0.95rem; }
+.an .text .nein li strong { color: var(--accent-ink); }
+.an .text .dialog { background: var(--bg-2); border-radius: 12px; padding: 1rem 1.2rem; margin: 1rem 0 1.5rem; font-family: var(--sans); font-size: 0.95rem; }
+.an .text .dialog p { margin: 0.35rem 0; }
+.an .text .dialog .k { color: var(--ink-2); }
+.an .text .dialog .t { color: var(--accent-ink); }
+  .text code{overflow-wrap:anywhere}
+  .an .text ol.schritte{grid-template-columns:minmax(0,1fr)} .an .text ol.schritte > li{min-width:0}
+
+/* Beispiele-Raster und Fächertabelle (Trainer) */
+.text ul.beispiele, .beispiele { padding-left: 0; margin-left: 0; }
+.beispiele { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.8rem; margin: 1.2rem 0 1.6rem; padding: 0; list-style: none; }
+.beispiele a { display: block; height: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 0.8rem 1rem; text-decoration: none; color: var(--ink); font-family: var(--sans); box-shadow: var(--shadow); }
+.beispiele a:hover { border-color: var(--accent); }
+.beispiele b { display: block; font-size: 1rem; color: var(--accent-ink); }
+.beispiele span { display: block; font-size: 0.88rem; color: var(--ink-2); line-height: 1.45; margin-top: 0.2rem; }
+.beispiele .fach { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 0.25rem; }
+</style>
+
+</head>
+<body>
+
+<header class="kopf">
+  <div class="kopf-inner">
+    <a class="marke" href="https://andreas-hemmeter.de/" title="Zur Übersicht aller Beiträge"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><g class="h"><rect x="12" y="6" width="9" height="52" rx="2"/><rect x="43" y="6" width="9" height="52" rx="2"/><rect x="12" y="36" width="40" height="8" rx="2"/></g><g class="a" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 58 L22 17 H42 L47.5 58"/><path d="M19 40 H45"/></g></svg><span>Andreas Hemmeter</span></a>
+    <nav class="kopf-nav" aria-label="Seite">
+      <a href="baukasten/">Baukasten</a>
+      <a href="#beispiele">Beispiele</a>
+      <a class="nur-breit" href="https://andreas-hemmeter.de/">Alle Beiträge</a>
+      <button type="button" class="theme" id="theme" aria-label="Hell/Dunkel umschalten" title="Hell/Dunkel umschalten">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.5 0-1-.1-1.4A5.5 5.5 0 0 1 12 3z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<article class="artikel an">
+  <header class="titel">
+    <p class="kicker">Werkzeug für den Unterricht · Mathematik, Latein und mehr</p>
+    <h1>Der Trainer: Lösungswege Schritt für Schritt selbst kontrollieren</h1>
+    <p class="untertitel">Aus einem Arbeitsblatt wird in wenigen Minuten ein interaktiver Trainer. Die Kinder üben damit im eigenen Tempo und vergleichen ihren Weg Zeile für Zeile mit einer sauber notierten Lösung – nicht nur das Endergebnis. Entstanden ist er im Mathematikunterricht; er funktioniert überall, wo es Verfahren mit festen Schritten gibt, etwa beim Bestimmen lateinischer Formen und Satzglieder. Den Code schreibt ein KI-Assistent in Fobizz, ein Baukasten im Browser macht daraus eine Datei für iPad und Tafel.</p>
+    <p class="meta"><span>Andreas Hemmeter</span><span aria-hidden="true">·</span><time datetime="2026-11">November 2026</time><span aria-hidden="true">·</span><span>ca. 10 Min.</span></p>
+  </header>
+
+  <div class="text">
+    <p>Zu jedem Kapitel meiner fünften Klasse baue ich inzwischen ein interaktives Tafelbild: Lernblatt mit Klick-Lücken, Arbeitsblatt zum Verbessern, und ein Reiter, den ich „Trainer“ nenne. An der Tafel hilft er beim gemeinsamen Verbessern. Seinen größten Wert hat er aber, wenn die Kinder selbst damit arbeiten: Jedes Kind rechnet in seinem Tempo und kontrolliert danach seinen Rechenweg Schritt für Schritt.</p>
+    <p>Denn das Endergebnis schaffen viele Kinder. Was oft nicht gelingt, ist die Struktur: welche Zeile als Nächstes kommt, wo das Gleichheitszeichen steht, wie die Probe notiert wird. Ein Lösungsstreifen mit „x = 177“ zeigt das nicht. Der Trainer zeigt den Weg so, wie er ins Heft gehört, und das Kind prüft nach jeder Zeile, ob es bei ihm genauso dasteht. Wer sicher ist, holt sich die nächste Aufgabe. Und ich habe Zeit für die zwei Kinder pro Klasse, die größere Schwierigkeiten haben, und kann bei ihnen länger bleiben.</p>
+    <p>Diesen Teil gibt es jetzt für alle Lehrkräfte – unabhängig von Schule und Lehrwerk. Ein Assistent in Fobizz liest Ihr eigenes Material, entscheidet, welche Aufgaben sich für einen Trainer lohnen, und schreibt dafür einen kurzen Code-Block. Den fügen Sie in den <strong>Baukasten</strong> ein, eine Seite im Browser, und speichern das Ergebnis als eigene Datei. Kein Programmieren, nichts zu installieren, keine Schülerdaten.</p>
+    <p>Angefangen hat das als „Mathematiktrainer“. Beim Ausprobieren zeigte sich: Derselbe Baukasten führt genauso vor, wie man eine lateinische Form bestimmt oder einen Satz in Satzglieder zerlegt. Deshalb heißt er jetzt einfach <strong>Trainer</strong>. Mathematik-Code, den Sie mit dem alten Assistenten erstellt haben, läuft unverändert weiter.</p>
+
+    <figure class="fluss" aria-labelledby="fluss-cap">
+      <svg viewBox="0 0 920 215" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ablauf: eigenes Material → Fobizz-Assistent → Trainer-Code → Baukasten → Trainer-Datei für iPad und Tafel">
+        <defs><marker id="pf" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0 L10 4 L0 8 z" class="fl-pf"/></marker></defs>
+        <rect class="fl-box" x="0" y="30" width="160" height="96" rx="12"/><text class="fl-t" x="80" y="64" text-anchor="middle">Ihr Material</text><text class="fl-s" x="80" y="86" text-anchor="middle">Arbeitsblatt, Heft-</text><text class="fl-s" x="80" y="104" text-anchor="middle">eintrag, Wortliste</text>
+        <path class="fl-a" d="M160 78 H186" marker-end="url(#pf)"/>
+        <rect class="fl-box" x="190" y="30" width="160" height="96" rx="12"/><text class="fl-t" x="270" y="64" text-anchor="middle">Assistent</text><text class="fl-s" x="270" y="86" text-anchor="middle">Fobizz, Skill</text><text class="fl-s" x="270" y="104" text-anchor="middle">„trainer“</text>
+        <path class="fl-a" d="M350 78 H376" marker-end="url(#pf)"/>
+        <rect class="fl-box" x="380" y="30" width="160" height="96" rx="12"/><text class="fl-t" x="460" y="64" text-anchor="middle">Trainer-Code</text><text class="fl-s" x="460" y="86" text-anchor="middle">ein kurzer Block,</text><text class="fl-s" x="460" y="104" text-anchor="middle">kopieren</text>
+        <path class="fl-a" d="M540 78 H566" marker-end="url(#pf)"/>
+        <rect class="fl-box" x="570" y="30" width="160" height="96" rx="12"/><text class="fl-t" x="650" y="64" text-anchor="middle">Baukasten</text><text class="fl-s" x="650" y="86" text-anchor="middle">im Browser, prüft</text><text class="fl-s" x="650" y="104" text-anchor="middle">und speichert</text>
+        <path class="fl-a" d="M730 78 H756" marker-end="url(#pf)"/>
+        <rect class="fl-box" x="760" y="30" width="160" height="96" rx="12"/><text class="fl-t" x="840" y="64" text-anchor="middle">Trainer-Datei</text><text class="fl-s" x="840" y="86" text-anchor="middle">iPad der Kinder,</text><text class="fl-s" x="840" y="104" text-anchor="middle">Tafel – offline</text>
+        <rect class="fl-box fest" x="155" y="166" width="230" height="40" rx="10"/><text class="fl-s" x="270" y="185" text-anchor="middle">fester Teil (einmal per Remix):</text><text class="fl-s" x="270" y="199" text-anchor="middle">Instruktionen, Skill, Beispiel</text>
+        <path class="fl-a" d="M270 166 V134" marker-end="url(#pf)" stroke-dasharray="4 3"/>
+      </svg>
+      <figcaption id="fluss-cap">Der Assistent wird einmal per Remix übernommen (gestrichelt). Pro Thema wandern nur Ihr Material hinein und ein Code-Block heraus. Aussehen, Bedienung und Selbsttest stecken im Baukasten – deshalb ist die Antwort des Assistenten kurz und schnell.</figcaption>
+    </figure>
+
+    <h2 id="eigenes-tempo">Der größte Mehrwert: Kontrolle in jedem Schritt, im eigenen Tempo</h2>
+    <p>So läuft eine Übungsphase mit dem Trainer – auf dem iPad oder jedem anderen Gerät mit Browser:</p>
+    <ol>
+      <li><strong>Erst selbst lösen.</strong> Das Kind löst die Aufgabe vollständig im Heft, mit allen Zeilen.</li>
+      <li><strong>Dann Schritt für Schritt aufdecken.</strong> Es tippt die Aufgabe im Trainer an – den Knopf des Arbeitsblatts oder „🎲 Zufall“ – und deckt mit „Nächster Schritt“ eine Zeile nach der anderen auf.</li>
+      <li><strong>Nach jeder Zeile vergleichen.</strong> Stimmt der Aufbau? Steht dieselbe Umformung da, in derselben Schreibweise, das Gleichheitszeichen am richtigen Platz – oder in Latein: dasselbe Satzglied, dieselbe Bestimmung? Ein richtiges Ergebnis auf einem ungeordneten Weg ist noch nicht fertig.</li>
+      <li><strong>An der ersten Abweichung ansetzen.</strong> Neben der Zeile steht die Erklärung des Schritts in Schülersprache. Das Kind verbessert seine Zeile und rechnet von dort aus weiter.</li>
+      <li><strong>Weiter im passenden Niveau.</strong> Wer sicher ist, holt sich mit „🎲 Zufall“ eine neue Aufgabe oder wechselt in die nächste Stufe; wer noch unsicher ist, bleibt bei „Basis“.</li>
+    </ol>
+    <p>Die Schnellen warten nicht auf die anderen, und wer mehr Zeit braucht, wird nicht mitgezogen. Wer allein zurechtkommt, kontrolliert sich selbst. Sie gewinnen Zeit für die wenigen Kinder, bei denen das nicht reicht, und können sich ihnen länger widmen, ohne dass der Rest der Klasse stillsteht.</p>
+    <p>Hilfreich ist eine feste Regel: erst lösen, dann aufdecken – und beim Üben Schritt für Schritt statt „Alles zeigen“. Der Trainer liest nicht mit, was im Heft steht. Den Vergleich macht das Kind selbst, und genau dabei schaut es auf die Form seines Lösungswegs.</p>
+
+    <h2 id="was-er-kann">Was der Trainer kann</h2>
+    <p>Ein Trainer besteht aus bis zu drei Reitern. Jeder Reiter ist einer von zwei Bausteinen.</p>
+    <p><strong>Der Vorführer</strong> zeigt einen Lösungsweg so, wie er ins Heft kommt: links die Rechnung, Zeile für Zeile, rechts die Erklärung in Schülersprache. „Nächster Schritt“ (oder die Pfeiltaste) deckt die nächste Zeile mit ihrer Erklärung auf, „◂“ geht zurück – so lässt sich der eigene Weg Zeile für Zeile danebenlegen. Die Aufgaben Ihres Blatts stehen als Knöpfe darunter, beschriftet wie im Material – „AB Nr. 2: a) b) c) d)“. Ein Tippen genügt, im Heft wie an der Tafel. Jede andere Aufgabe lässt sich eintippen, und „🎲 Zufall“ erzeugt eine neue in der gewählten Stufe.</p>
+    <figure class="abb"><a class="zoom" href="bilder/abb01_vorfuehrer.png" target="_blank" rel="noopener"><img src="bilder/abb01_vorfuehrer.png" alt="Vorführer „Gleichung Schritt für Schritt“: die Aufgabe 415 − x = 238 aus AB Nr. 2 d), links die Rechnung x = 415 − 238, x = 177 und die Probe, rechts vier Erklärschritte" loading="lazy"></a><figcaption>Der Vorführer mit Aufgabe d) aus dem Arbeitsblatt: Platzhalter hinten, also Unterschied, Rechnung, Probe. Der jeweils neueste Erklärschritt ist markiert.</figcaption></figure>
+    <p><strong>Der Blitz</strong> stellt Aufgaben in drei Stufen – Basis, Erweitert, Knobeln – und deckt die Lösung auf Knopfdruck auf – zum schnellen Üben im eigenen Tempo. „Im Vorführer zeigen“ übergibt eine Blitz-Aufgabe an den Vorführer, wenn ein Kind oder die Klasse den ganzen Weg sehen will.</p>
+    <figure class="abb"><a class="zoom" href="bilder/abb03_blitz.png" target="_blank" rel="noopener"><img src="bilder/abb03_blitz.png" alt="Gleichungs-Blitz in der Stufe Erweitert: Aufgabe 591 − x = 232, aufgedeckt mit x = 591 − 232 = 359 und Probe" loading="lazy"></a><figcaption>Der Blitz in der Stufe „Erweitert“, Lösung aufgedeckt. Die Zahlen sind jedes Mal neu.</figcaption></figure>
+    <p>Dazu kommt eine Kopfleiste wie bei einem Tafelbild: Schrift größer und kleiner, Vollbild und ein <strong>Tafelmodus</strong> mit dunklem Hintergrund und hohem Kontrast für helle Räume und schwache Beamer. Die Knöpfe sind groß genug für Finger auf dem iPad, und alles lässt sich auch mit der Tastatur bedienen – praktisch am Smartboard mit einer Funktastatur in der Hand.</p>
+    <figure class="abb"><a class="zoom" href="bilder/abb02_tafelmodus.png" target="_blank" rel="noopener"><img src="bilder/abb02_tafelmodus.png" alt="Derselbe Vorführer im Tafelmodus: dunkler Hintergrund, helle Schrift, Aufgabe x + 57 = 83" loading="lazy"></a><figcaption>Tafelmodus (Taste T). Variablen bleiben farbig, das Endergebnis ist doppelt unterstrichen.</figcaption></figure>
+    <p class="knopfreihe"><a class="knopf" href="beispiel/">Beispiel ausprobieren</a> <a class="knopf leicht" href="baukasten/">Baukasten öffnen</a></p>
+
+    <h2 id="sprachen">Nicht nur Mathematik: ein Probelauf für Latein</h2>
+    <p>Ein Trainer lohnt sich überall, wo es <strong>ein Verfahren mit festen Schritten</strong> gibt. In Latein ist das zum Beispiel die Satzanalyse vor dem Übersetzen: zuerst das Prädikat über die Personalendung, dann das Subjekt – ein Nominativ, der zum Prädikat passt, oder es steckt in der Endung –, dann die Objekte nach ihrem Kasus, der Rest sind Adverbialien. Erst dann wird übersetzt. Der Vorführer markiert mit jedem Schritt ein Satzglied mehr, farbig und mit Etikett, und zeigt am Ende die Übersetzung in deutscher Reihenfolge.</p>
+    <figure class="abb"><a class="zoom" href="bilder/abb05_latein_satzglieder.png" target="_blank" rel="noopener"><img src="bilder/abb05_latein_satzglieder.png" alt="Lateintrainer Satzglieder: Hodie amici in foro mercatorem exspectant – Prädikat, Subjekt, Akkusativobjekt und Adverbialien farbig markiert, darunter die Übersetzung" loading="lazy"></a><figcaption>Satzglieder bestimmen: Prädikat → Subjekt → Objekte → Adverbialien → Übersetzung. Dazu Zufallssätze in drei Stufen und ein Satzglied-Blitz.</figcaption></figure>
+    <p>Beim Bestimmen von Formen geht der Trainer wie im Heft vor: Wort im Wortschatz suchen, am Genitiv die Deklination erkennen, Stamm und Endung trennen, alle Treffer in der Tabelle markieren. Mehrdeutigkeit wird gezeigt, nicht verschwiegen – <em>puellae</em> ist Genitiv Singular, Dativ Singular oder Nominativ Plural; welche Form passt, entscheidet erst der Satz.</p>
+    <figure class="abb"><a class="zoom" href="bilder/abb06_latein_deklination.png" target="_blank" rel="noopener"><img src="bilder/abb06_latein_deklination.png" alt="Lateintrainer Deklinationen: puellae mit Tabelle der a-Deklination, drei Treffer markiert" loading="lazy"></a><figcaption>Formen bestimmen mit allen Treffern in der Tabelle. Der Blitz fragt abwechselnd „Bilde …“ und „Bestimme …“.</figcaption></figure>
+    <p>Beide Latein-Trainer arbeiten mit einem kleinen, eigenen Grundwortschatz und sind ein Probelauf – Begriffe und Markierungen sollten Lateinlehrkräfte an den eigenen Unterricht anpassen. Genau das geht über den Assistenten: Wortliste und Begriffe mitgeben, fertig. Diese Fächer und Themen passen:</p>
+    <table>
+      <thead><tr><th>Fach</th><th>geeignet, zum Beispiel</th></tr></thead>
+      <tbody>
+        <tr><td>Mathematik</td><td>Gleichungen, Terme, Text → Term, schriftliches Rechnen, Brüche, Primfaktoren, Einheiten</td></tr>
+        <tr><td>Latein (erprobt)</td><td>Formen bestimmen und bilden, Satzglieder bestimmen</td></tr>
+        <tr><td>andere Sprachen</td><td>Formen nach Regel bilden (Zeitformen, Steigerung), Formen bestimmen</td></tr>
+        <tr><td>Naturwissenschaften</td><td>Formeln umstellen, Einheiten umrechnen</td></tr>
+      </tbody>
+    </table>
+    <p>Ein Hinweis aus dem Probelauf: Sprach-Trainer brauchen mehr Daten als Mathe-Trainer – Wortliste, Endungstabellen, Musterformen. Bitten Sie den Assistenten deshalb um einen Trainer pro Antwort und geben Sie eine kurze Wortliste mit (10 bis 20 Wörter).</p>
+
+    <h2 id="beispiele">Beispiele zum Ausprobieren</h2>
+    <p>Alle Beispiele sind mit dem Baukasten gebaut, laufen im Browser und lassen sich herunterladen und weitergeben. Die fünf Mathematik-Trainer stammen aus meinen Tafelbildern der fünften Klasse.</p>
+    <ul class="beispiele">
+      <li><a href="beispiel/"><p class="fach">Mathematik</p><b>Gleichungen lösen</b><span>Vorführer, Blitz und Brüche kürzen</span></a></li>
+      <li><a href="beispiele/Mathematiktrainer_Rechenstrich.html"><p class="fach">Mathematik</p><b>Gleichungen am Rechenstrich</b><span>Bögen bauen sich Schritt für Schritt auf</span></a></li>
+      <li><a href="beispiele/Mathematiktrainer_Gleichungsblitz.html"><p class="fach">Mathematik</p><b>Gleichungs-Blitz</b><span>2- bis 4-stellig, mit Platzhalter □</span></a></li>
+      <li><a href="beispiele/Mathematiktrainer_Text-Term-Zerleger.html"><p class="fach">Mathematik</p><b>Text-Term-Zerleger</b><span>Verb, Signalwort, Klammern – vom Text zum Term</span></a></li>
+      <li><a href="beispiele/Mathematiktrainer_Satzbaukasten.html"><p class="fach">Mathematik</p><b>Satzbaukasten</b><span>vom Term zum Text</span></a></li>
+      <li><a href="beispiele/Mathematiktrainer_Primfaktorzerlegung.html"><p class="fach">Mathematik</p><b>Primfaktorzerlegung</b><span>Faktorbaum wächst Schritt für Schritt, mit Potenzschreibweise</span></a></li>
+      <li><a href="beispiele/Lateintrainer_Satzglieder.html"><p class="fach">Latein</p><b>Satzglieder bestimmen</b><span>Prädikat, Subjekt, Objekte, Adverbialien, Übersetzung</span></a></li>
+      <li><a href="beispiele/Lateintrainer_Deklinationen.html"><p class="fach">Latein</p><b>Deklinationen</b><span>Formen bestimmen und bilden, a-, o- und 3. Deklination</span></a></li>
+    </ul>
+    <figure class="abb"><a class="zoom" href="bilder/abb07_rechenstrich.png" target="_blank" rel="noopener"><img src="bilder/abb07_rechenstrich.png" alt="Rechenstrich-Trainer: 415 − x = 238 mit Rechenstrich, oberem und unterem Bogen, Umkehraufgabe und Probe" loading="lazy"></a><figcaption>Der Rechenstrich-Trainer: Ein Bild pro Schritt ergibt eine kleine Animation – erst die Zahlen, dann der obere Bogen, dann der Rückweg.</figcaption></figure>
+
+    <h2 id="was-nicht">Was er bewusst nicht kann</h2>
+    <ul class="nein">
+      <li><strong>Kein Arbeitsblatt, kein Lernblatt.</strong> Der Assistent baut Ihr Material nicht nach. Er nimmt nur die Aufgaben, bei denen ein Trainer etwas kann, was Papier und Tafel nicht können: ein Verfahren an beliebig vielen Aufgaben vorführen, eine Aufgabe per Knopf aufrollen, neue Aufgaben in Sekunden.</li>
+      <li><strong>Keine offenen Aufgaben.</strong> Begründen, Beschreiben, Konstruieren mit Zirkel und Geodreieck, Sachaufgaben mit eigenem Kontext, freies Schreiben und das Übersetzen ganzer Texte setzt er nicht um. Im Plan sagt er kurz, warum. Hat das ganze Material keinen passenden Teil, sagt er auch das.</li>
+      <li><strong>Keine Auswertung, keine Schülerdaten.</strong> Der Trainer ist ein Werkzeug zum selbstständigen Üben und für die Tafel. Er liest nicht mit, was die Kinder schreiben, bewertet nichts, sammelt nichts und schickt nichts weg.</li>
+      <li><strong>Kein Ersatz für Ihren Blick.</strong> Die Lösungen prüft der Trainer selbst (siehe unten). Ob die Erklärschritte so klingen, wie Sie es im Unterricht sagen, sehen Sie beim einmaligen Durchklicken.</li>
+    </ul>
+
+    <h2 id="voraussetzungen">Was Sie brauchen</h2>
+    <p>Einen <strong>Fobizz-Zugang</strong> (Schul- oder Einzellizenz), mit dem Sie angemeldet sind; der Remix-Knopf erscheint nur im angemeldeten Zustand. Ihr eigenes <strong>Material</strong> als PDF, Foto oder Text – Arbeitsblatt, Hefteintrag, eigene Aufgaben oder eine Wortliste. Und einen <strong>Browser</strong>: Der Baukasten läuft online unter dieser Adresse oder als Datei aus dem Material-Paket, auch am iPad in Safari. Für die Übungsphase brauchen die Kinder ein Gerät mit Browser, etwa ein Schul-iPad; die Trainer-Datei kommt per Lernplattform, AirDrop oder geteiltem Ordner dorthin.</p>
+
+    <h2 id="schritte">Einen Trainer erstellen</h2>
+    <p>Den Remix machen Sie einmal. Danach braucht jeder neue Trainer etwa fünf Minuten, das meiste davon ist Durchklicken.</p>
+    <ol class="schritte">
+
+      <li class="schritt" id="schritt-1">
+        <div class="kopfzeile"><span class="nr">1</span><h3>Den Assistenten übernehmen</h3><span class="wo">Fobizz · Remix · einmalig, 2 Minuten</span></div>
+        <p>Öffnen Sie – angemeldet in Fobizz – die <a href="https://app.fobizz.com/ai/chats/public_assistants/6aa1ea34-7afd-454d-8960-e6dc25832110?token=d74998fafe4035edf822bbc30adc2723" rel="noopener" target="_blank">Vorlage „Trainer“</a> und klicken Sie oben rechts auf „Remix“. Die Kopie mit Instruktionen, dem Skill „trainer“, drei Wissensdateien (Schnittstelle, Beispiel Mathematik, Beispiel Latein), Chatstartern und Bild liegt danach in Ihrer Ablage. Prüfen Sie dort das Sprachmodell: <strong>Claude Sonnet 5.5</strong>. Wenn Fobizz „erweitertes Denken“ anbietet, lassen Sie es aus.</p>
+        <p class="ergebnis">Ergebnis: ein eigener Assistent „Trainer“ in Ihrer Ablage. Haben Sie schon den „Mathematiktrainer“ übernommen, machen Sie den Remix neu – die alte Kopie bleibt bei Mathematik. Ohne Fobizz geht es auch: Das Material-Paket enthält alle Teile zum Selbst-Anlegen, auch für ein Claude-Projekt.</p>
+      </li>
+
+      <li class="schritt" id="schritt-2">
+        <div class="kopfzeile"><span class="nr">2</span><h3>Material geben</h3><span class="wo">Fobizz · Assistent · 1 Minute</span></div>
+        <p>Laden Sie Ihr eigenes Material hoch – Arbeitsblatt, Hefteintrag oder Wortliste, keine Buchseiten – und schreiben Sie: <em>„Daraus bitte den Trainer.“</em> Der Assistent antwortet in drei Teilen. Zuerst kommt ein <strong>Plan</strong> mit höchstens fünf Zeilen: welche Aufgaben welcher Trainer werden und welche nicht. Dann der <strong>Trainer-Code</strong> in einem Kasten. Zum Schluss eine <strong>Kontrolltabelle</strong> mit den Ergebnissen der Knopf-Aufgaben, die er selbst nachgeprüft hat. Vergleichen Sie die Tabelle kurz mit Ihrem Lösungsblatt.</p>
+        <p class="ergebnis">Ergebnis: ein Code-Block, der mit <code>var NAME</code> beginnt – meist 4 000 bis 7 000 Zeichen.</p>
+      </li>
+
+      <li class="schritt" id="schritt-3">
+        <div class="kopfzeile"><span class="nr">3</span><h3>Code in den Baukasten</h3><span class="wo">Browser · Baukasten · 1 Minute</span></div>
+        <p>Kopieren Sie den ganzen Kasten (über das Kopier-Symbol am Kasten oder durch Markieren), öffnen Sie den <a href="baukasten/">Baukasten</a>, fügen Sie ein und tippen Sie auf „Trainer starten“. Ob die Markdown-Zeichen am Anfang mitkopiert wurden, ist egal; der Baukasten entfernt sie.</p>
+        <figure class="abb"><a class="zoom" href="bilder/abb04_baukasten.png" target="_blank" rel="noopener"><img src="bilder/abb04_baukasten.png" alt="Der Baukasten mit eingefügtem Trainer-Code im Textfeld und dem Knopf „Trainer starten“" loading="lazy"></a><figcaption>Der Baukasten mit eingefügtem Code. Alles läuft in Ihrem Browser; der Code wird nirgendwohin geschickt.</figcaption></figure>
+      </li>
+
+      <li class="schritt" id="schritt-4">
+        <div class="kopfzeile"><span class="nr">4</span><h3>Prüfen und speichern</h3><span class="wo">Browser · 2 Minuten</span></div>
+        <p>Unten rechts muss stehen: <em>„Selbsttest ✓ … Aufgaben geprüft“</em>. Klicken Sie die Knopf-Aufgaben einmal durch – stimmen die Schritte mit dem überein, was Sie im Unterricht sagen? Dann oben auf <strong>„💾 Als Datei speichern“</strong>. Die gespeicherte Datei startet beim Öffnen sofort, ohne Baukasten, auch offline. Geben Sie sie den Kindern aufs Tablet – für die Übungsphase im Unterricht und zum Üben zu Hause – und legen Sie sie zu Ihren Tafelbildern.</p>
+        <p class="ergebnis">Ergebnis: eine Datei wie <code>Mathematiktrainer_Gleichungen_loesen.html</code> oder <code>Lateintrainer_Satzglieder_bestimmen.html</code> (25 bis 100 kB). Erscheint statt des Selbsttests eine Meldung, kopieren Sie sie in den Assistenten – er liefert einen korrigierten Code-Block.</p>
+      </li>
+    </ol>
+
+    <h2 id="unterricht">Im Unterricht</h2>
+    <p>Die Bedienung funktioniert mit dem Finger auf dem Tablet ebenso wie am Smartboard. Dort hilft die Tastatur:</p>
+    <table>
+      <thead><tr><th>Taste</th><th>Wirkung</th></tr></thead>
+      <tbody>
+        <tr><td>→ oder Leertaste</td><td>nächster Schritt; im Blitz: aufdecken, dann neue Aufgabe</td></tr>
+        <tr><td>←</td><td>einen Schritt zurück</td></tr>
+        <tr><td>A / N</td><td>alles zeigen / neue Zufallsaufgabe</td></tr>
+        <tr><td>1–4</td><td>Reiter wechseln</td></tr>
+        <tr><td>T / F</td><td>Tafelmodus / Vollbild</td></tr>
+        <tr><td>+ / −</td><td>Schrift größer / kleiner</td></tr>
+      </tbody>
+    </table>
+    <p>Drei Einsätze bieten sich an. <strong>In der Übungsphase</strong>, dem wichtigsten, arbeitet jedes Kind am eigenen Gerät wie oben beschrieben, und Sie sind frei für die Kinder, die Unterstützung brauchen. <strong>Beim Verbessern an der Tafel</strong> nennt ein Kind sein Ergebnis, Sie tippen auf die Aufgabe, und die Klasse sagt den nächsten Schritt voraus, bevor Sie ihn aufdecken. <strong>Zum Einstieg</strong> laufen ein paar Blitz-Aufgaben in der Stufe Basis als kurzes Aufwärmen. Zu Hause übt jedes Kind mit „🎲 Zufall“ so viele Aufgaben, wie es möchte.</p>
+
+    <h2 id="rechenfehler">Warum keine Fehler durchrutschen</h2>
+    <p>In Lösungen darf kein Fehler sein, auch nicht in Zufallsaufgaben. Deshalb tippt der Assistent keine einzige Lösung ein, sondern schreibt, wie sie <strong>berechnet</strong> wird. Zu jedem Trainer gehört außerdem eine <strong>unabhängige Kontrolle</strong>: Bei Gleichungen etwa wird die Lösung zusätzlich eingesetzt, beim Kürzen geprüft, ob der Bruch wirklich vollständig gekürzt ist. Beim Start rechnet der Baukasten alle Knopf-Aufgaben und je Stufe 300 Zufallsaufgaben mit dieser Kontrolle nach. Erst dann erscheint das Häkchen. Die Kontrolltabelle in der Antwort ist eine zweite, unabhängige Rechnung des Assistenten, und Ihr Lösungsblatt die dritte.</p>
+    <p>In Sprachen gilt dasselbe Prinzip: Formen werden aus Stamm und Endungstabelle gebildet, nie einzeln eingetippt. Die unabhängige Kontrolle sind Musterformen, die für je ein Wort pro Deklination von Hand im Code stehen – stimmt die Tabelle nicht mit ihnen überein, gibt es kein Häkchen. Bei Sätzen liest der Trainer jeden Zufallssatz noch einmal und prüft, ob es genau eine Bestimmung gibt und Subjekt und Prädikat zusammenpassen; mehrdeutige Sätze lässt er weg.</p>
+
+    <h2 id="datenschutz">Datenschutz in drei Sätzen</h2>
+    <p>Im Assistenten arbeiten nur Sie, mit Ihrem Material; laden Sie dort nichts mit Namen oder Noten von Kindern hoch. Baukasten und Trainer-Dateien laufen vollständig im Browser, speichern nichts auf einem Server und übertragen keine Daten. Die Kinder brauchen weder Konto noch Anmeldung – sie öffnen eine Datei auf ihrem Gerät oder sehen den Trainer an der Tafel.</p>
+
+    <h2 id="haken">Wenn etwas hakt</h2>
+    <table>
+      <thead><tr><th>Das passiert</th><th>Das hilft</th></tr></thead>
+      <tbody>
+        <tr><td>Die Antwort des Assistenten bricht nach etwa zwei Minuten ab</td><td>„Erweitertes Denken“ ausschalten und um höchstens zwei Trainer bitten. Der Assistent liefert nur einen kurzen Code-Block; hängt er trotzdem, ist meist das Material sehr umfangreich – dann nur die Seite mit den passenden Aufgaben hochladen.</td></tr>
+        <tr><td>Der Baukasten meldet „Der Code enthält einen Fehler“</td><td>Meist wurde der Kasten nicht vollständig kopiert. Mit dem Kopier-Symbol erneut kopieren; sonst die Meldung in den Assistenten einfügen.</td></tr>
+        <tr><td>Unten rechts steht „⚠ Selbsttest“ statt des Häkchens</td><td>Die Meldung in den Assistenten kopieren. Er korrigiert die betroffene Rechnung und schickt den ganzen Code neu.</td></tr>
+        <tr><td>Ein Erklärschritt ist anders formuliert als in Ihrem Unterricht</td><td>Einfach sagen: „Bei Schritt 2 bitte ‚Gegenrechnung‘ statt ‚Umkehrung‘.“ Schreibweisen aus Ihrem Material übernimmt er von sich aus.</td></tr>
+        <tr><td>Ein Sprach-Trainer bricht ab oder wird unvollständig</td><td>Um einen Trainer pro Antwort bitten und eine kurze Wortliste (10 bis 20 Wörter) mitgeben.</td></tr>
+        <tr><td>Ich habe noch Code vom „Mathematiktrainer“</td><td>Er läuft im neuen Baukasten unverändert; im Titel steht dann „Trainer“ statt „Mathematiktrainer“.</td></tr>
+        <tr><td>Am iPad passiert beim Speichern nichts Sichtbares</td><td>Safari legt die Datei unter „Downloads“ in der Dateien-App ab. Öffnen lässt sie sich von dort oder nach dem Teilen in einen Ordner Ihrer Wahl.</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="material">Material zum Herunterladen</h2>
+    <p>Das <strong>Material-Paket</strong> enthält alles zum Selbst-Anlegen des Assistenten: Instruktionen, Skill, drei Wissensdateien, Name, Beschreibung und Chatstarter, das Bild, die Anleitung, den Baukasten als Datei für die Offline-Nutzung und zwei Beispiel-Trainer (Mathematik, Latein). Damit lässt sich der Assistent auch ohne Remix nachbauen – in Fobizz, als Claude-Projekt oder in einem anderen Werkzeug, das Instruktionen und Wissensdateien annimmt.</p>
+    <p class="knopfreihe"><a class="knopf" href="material/Trainer_Paket.zip" download>Material-Paket herunterladen (ZIP)</a> <a class="knopf" href="https://app.fobizz.com/ai/chats/public_assistants/6aa1ea34-7afd-454d-8960-e6dc25832110?token=d74998fafe4035edf822bbc30adc2723" rel="noopener" target="_blank">Vorlage in Fobizz ↗</a> <a class="knopf leicht" href="baukasten/">Baukasten öffnen</a> <a class="knopf leicht" href="beispiel/">Beispiel ausprobieren</a> <a class="knopf leicht" href="https://github.com/andy-unclesam/Trainer" rel="noopener" target="_blank">Quellcode auf GitHub ↗</a></p>
+
+    <p class="zurueck"><a href="https://andreas-hemmeter.de/">← Alle Beiträge</a> · <a href="https://andreas-hemmeter.de/Lernschleife/">Die Lernschleife</a></p>
+    <section class="lizenz">
+      <p><strong>Lizenz.</strong> Text und Anleitungen unter <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.de" rel="license noopener" target="_blank">CC BY-SA 4.0</a>, Code von Baukasten und Beispielen unter MIT, die Fobizz-Vorlage unter CC BY – Andreas Hemmeter. Der Assistent läuft auf Fobizz mit dem dort gewählten Sprachmodell. Erstellt mit Unterstützung von Claude Cowork.</p>
+    </section>
+  </div>
+</article>
+</main>
+
+<footer class="fuss">
+  <div class="fuss-inner">
+    <span>Andreas Hemmeter · <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.de" rel="license noopener" target="_blank">CC BY-SA 4.0</a></span>
+    <span><a href="https://andreas-hemmeter.de/">Alle Beiträge</a> · <a href="https://andreas-hemmeter.de/impressum.html">Impressum &amp; Datenschutz</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement, btn = document.getElementById('theme');
+  var t; try { t = localStorage.getItem('theme'); } catch (e) {}
+  if (t === 'dark' || t === 'light') root.setAttribute('data-theme', t);
+  btn.addEventListener('click', function () {
+    var dunkel = root.getAttribute('data-theme') === 'dark' || (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var neu = dunkel ? 'light' : 'dark'; root.setAttribute('data-theme', neu);
+    try { localStorage.setItem('theme', neu); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

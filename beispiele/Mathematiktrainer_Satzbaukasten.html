@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mathematiktrainer – Satzbaukasten: vom Term zum Text</title>
+<style>
+:root{--ink:#1f2937;--grau:#64748b;--rand:#cbd5e1;--soft:#f1f5f9;--blau:#1d4ed8;--blau-bg:#dbeafe;--gruen:#15803d;--gruen-bg:#dcfce7;--rot:#b91c1c;--gelb:#fef3c7;--bg:#f8fafc;--karte:#fff;--fs:22px}
+body.tafel{--ink:#f8fafc;--grau:#cbd5e1;--rand:#475569;--soft:#334155;--blau:#93c5fd;--blau-bg:#1e3a8a;--gruen:#86efac;--gruen-bg:#14532d;--gelb:#713f12;--bg:#1e293b;--karte:#273449}
+*{box-sizing:border-box}
+html{font-size:var(--fs)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45;font-variant-numeric:lining-nums tabular-nums}
+header{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:center;padding:.45rem .8rem;background:var(--karte);border-bottom:2px solid var(--rand)}
+header h1{font-size:1rem;margin:0 .6rem 0 0}
+@media (max-width:600px){header h1{font-size:.85rem} .ctrl{margin-left:0}}
+nav.reiter{display:flex;gap:.3rem;flex-wrap:wrap}
+.ctrl{display:flex;gap:.3rem;margin-left:auto;flex-wrap:wrap}
+button,.btn{font:inherit;font-size:.75rem;font-weight:700;min-height:2.2rem;min-width:2.2rem;padding:.2rem .7rem;border-radius:.5rem;border:2px solid var(--rand);background:var(--karte);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--blau)}
+button.an,button.primaer{background:var(--blau);border-color:var(--blau);color:#fff}
+body.tafel button.an,body.tafel button.primaer{color:#0f172a}
+main{max-width:70rem;margin:0 auto;padding:.8rem}
+section.trainer{display:none} section.trainer.aktiv{display:block}
+.karte{background:var(--karte);border:2px solid var(--rand);border-radius:.8rem;padding:.7rem .9rem;margin-bottom:.8rem}
+.karte h2{font-size:1rem;margin:0 0 .5rem}
+.zeile{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin:.35rem 0}
+.zeile .lbl{font-size:.75rem;color:var(--grau);font-weight:700}
+input.eingabe{font:inherit;font-size:.9rem;min-height:2.2rem;padding:.1rem .5rem;border:2px solid var(--rand);border-radius:.5rem;background:var(--karte);color:var(--ink);min-width:12rem;flex:1 1 16rem;max-width:30rem}
+.preset{font-size:.7rem;font-weight:600}
+.buehne{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:1rem;align-items:start;margin-top:.5rem}
+@media (max-width:800px){.buehne{grid-template-columns:1fr}}
+.aufgabe{font-size:1.3rem;font-weight:800;margin-bottom:.3rem}
+.bild{margin:.3rem 0}
+.bild svg{max-width:100%;height:auto}
+.tafelzeilen div{font-size:1.15rem;margin:.15rem 0;animation:auf .3s ease}
+ol.erkl{margin:0;padding-left:1.4rem;font-size:.85rem}
+ol.erkl li{margin:.3rem 0;padding:.15rem .35rem;border-radius:.35rem;animation:auf .3s ease}
+ol.erkl li:last-child{background:var(--gelb)}
+.info{font-size:.75rem;color:var(--grau);min-height:1.2em;margin-top:.3rem}
+.info.fehler{color:var(--rot);font-weight:700}
+.frage{font-size:1.25rem;font-weight:700;margin:.5rem 0;min-height:1.6em}
+.loesung{font-size:.95rem;border-top:2px dashed var(--rand);padding-top:.4rem;margin-top:.4rem}
+.loesung:empty{display:none}
+.erg{display:inline-block;border-bottom:4px double currentColor;padding:0 .1em;font-weight:800}
+.hl{background:var(--gelb);border-radius:.2em;padding:0 .1em}
+.v{font-style:italic;font-weight:800;color:#c2410c}
+body.tafel .v{color:#fdba74}
+.bruch{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .1em;line-height:1.1}
+.bruch>span:first-child{border-bottom:2px solid currentColor;padding:0 .15em}
+.seg{display:inline-flex;gap:.2rem;flex-wrap:wrap}
+#selbsttest{font-size:.65rem;color:var(--grau);text-align:right;padding:0 .8rem .6rem}
+#selbsttest.fehler{color:var(--rot);font-weight:700;font-size:.8rem}
+.hilfe{font-size:.6rem;color:var(--grau);text-align:center;padding-bottom:.6rem}
+.marke{display:inline-flex;flex-direction:column;align-items:center;vertical-align:top;margin:0 .12em;line-height:1.25}
+.marke>span:first-child{padding:0 .08em}
+.marke>small{font-size:.55em;font-weight:800;letter-spacing:.02em;margin-top:.1em}
+.m1{color:#1d4ed8}.m1>span:first-child{border-bottom:3px solid currentColor}
+.m2{color:#b91c1c}.m2>span:first-child{border-bottom:5px double currentColor}
+.m3{color:#15803d}.m3>span:first-child{border-bottom:3px dashed currentColor}
+.m4{color:#7c3aed}.m4>span:first-child{border-bottom:3px dotted currentColor}
+.m5{color:#c2410c}.m5>span:first-child{border-bottom:4px solid currentColor;padding-bottom:1px}
+body.tafel .m1{color:#93c5fd} body.tafel .m2{color:#fca5a5} body.tafel .m3{color:#86efac} body.tafel .m4{color:#c4b5fd} body.tafel .m5{color:#fdba74}
+.tabelle{border-collapse:collapse;font-size:.85rem;margin:.2rem 0}
+.tabelle th,.tabelle td{border:1px solid var(--rand);padding:.15rem .5rem;text-align:left}
+.tabelle th{background:var(--soft);font-size:.75rem}
+.tabelle td.hl{font-weight:800}
+@keyframes auf{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+#baukasten{max-width:60rem;margin:1rem auto;padding:0 .8rem}
+#baukasten textarea{width:100%;min-height:14rem;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;border:2px solid var(--rand);border-radius:.6rem;padding:.6rem;background:var(--karte);color:var(--ink)}
+#baukasten .meldung{font-size:.8rem;margin:.4rem 0;min-height:1.3em}
+#baukasten .meldung.fehler{color:var(--rot);font-weight:700}
+#bSpeichern{display:none}
+@media print{header .ctrl,nav.reiter,.hilfe,#selbsttest{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Mathematiktrainer – Satzbaukasten: vom Term zum Text</h1>
+  <nav class="reiter" id="reiter"></nav>
+  <div class="ctrl">
+    <button id="bKlein" title="Schrift kleiner (−)">A−</button><button id="bGross" title="Schrift größer (+)">A+</button>
+    <button id="bTafel" title="Tafelmodus (T)">Tafelmodus</button><button id="bVoll" title="Vollbild (F)">Vollbild</button><button id="bSpeichern" title="Trainer als eigene Datei speichern">💾 Als Datei speichern</button>
+  </div>
+</header>
+<section id="baukasten" hidden>
+  <div class="karte">
+    <h2>Trainer-Code einfügen</h2>
+    <p style="font-size:.8rem;margin:.2rem 0 .6rem">Kopieren Sie den Code-Block aus der Antwort des Assistenten (alles im Kasten, beginnt mit <code>var THEMA</code>) und fügen Sie ihn hier ein. Danach „Trainer starten“. Passt der Trainer, oben auf „💾 Als Datei speichern“ – die gespeicherte Datei startet beim Öffnen sofort, ohne diesen Schritt. Es werden keine Daten übertragen; alles läuft in Ihrem Browser.</p>
+    <textarea id="codeFeld" spellcheck="false" placeholder="var THEMA = &quot;…&quot;;&#10;…&#10;var TRAINER = [ … ];"></textarea>
+    <div class="zeile"><button class="primaer" id="bStart">Trainer starten</button></div>
+    <div class="meldung" id="meldung"></div>
+  </div>
+</section>
+<main id="main"></main>
+<div id="selbsttest"></div>
+<div class="hilfe" id="tastenhilfe" hidden><b>→</b> oder <b>Leertaste</b> nächster Schritt – <b>←</b> zurück – <b>A</b> alles zeigen – <b>N</b> neue Aufgabe – <b>T</b> Tafelmodus – <b>F</b> Vollbild – <b>+/−</b> Schrift</div>
+
+<!-- Hier steht nach dem Speichern der Trainer-Code; leer = Baukasten-Ansicht -->
+<script type="text/plain" id="trainer-code">
+var NAME = "Mathematiktrainer";
+var THEMA = "Satzbaukasten: vom Term zum Text";
+/* Terme aus Summen und Differenzen: Token-Liste, schrittweise berechnen (alle innersten Klammern in einem Schritt, wie im Hefteintrag) */
+function tTok(t){
+  var s = String(t).replace(/[\s  ]/g, "").replace(/[−–]/g, "-");
+  if (!/^[\d+\-()\[\]]+$/.test(s)) return null;
+  return (s.match(/\d+|[+\-()\[\]]/g) || []).map(function(x){ return /\d/.test(x) ? parseInt(x, 10) : x; });
+}
+function tZeig(tk){ return tk.map(function(x){ return typeof x === "number" ? nf(x) : (x === "+" ? " + " : x === "-" ? " − " : x); }).join(""); }
+function tLinks(tk){ var w = tk[0]; for (var i = 1; i < tk.length; i += 2) w = tk[i] === "+" ? w + tk[i + 1] : w - tk[i + 1]; return w; }
+function tSchritt(tk){
+  var hat = tk.some(function(x){ return x === "(" || x === "["; });
+  if (!hat) return [tLinks(tk.slice(0, 3))].concat(tk.slice(3));
+  var neu = [], i = 0;
+  while (i < tk.length){ var x = tk[i];
+    if (x === "(" || x === "["){ var j = i + 1; while (tk[j] !== ")" && tk[j] !== "]" && tk[j] !== "(" && tk[j] !== "[") j++;
+      if (tk[j] === ")" || tk[j] === "]"){ var inh = tk.slice(i + 1, j);
+        if (inh.length === 1) neu.push(inh[0]); else if (inh.length === 3) neu.push(tLinks(inh)); else neu = neu.concat([x, tLinks(inh.slice(0, 3))], inh.slice(3), [tk[j]]);
+        i = j + 1; continue; } }
+    neu.push(x); i++; }
+  return neu;
+}
+function tOhneEinzel(tk){ var g = true; while (g){ g = false; for (var i = 0; i + 2 < tk.length; i++) if ((tk[i] === "(" || tk[i] === "[") && typeof tk[i + 1] === "number" && (tk[i + 2] === ")" || tk[i + 2] === "]")){ tk = tk.slice(0, i).concat([tk[i + 1]], tk.slice(i + 3)); g = true; break; } } return tk; }
+function tKette(t){ var tk = tTok(t), z = [tZeig(tk)], n = 0; while (tk.length > 1 && n < 20){ tk = tOhneEinzel(tSchritt(tk)); z.push(tZeig(tk)); n++; } return z; }
+function tWert(t){ var z = tKette(t); return tTok(z[z.length - 1])[0]; }
+
+/* Satzteile: ["z", n] | ["s", a, b] | ["d", a, b] */
+function teilTerm(p){ return p[0] === "z" ? nf(p[1]) : "(" + nf(p[1]) + (p[0] === "s" ? " + " : " − ") + nf(p[2]) + ")"; }
+function teilWert(p){ return p[0] === "z" ? p[1] : p[0] === "s" ? p[1] + p[2] : p[1] - p[2]; }
+function teilAkk(p){ return p[0] === "z" ? "die Zahl " + nf(p[1]) : "die " + (p[0] === "s" ? "Summe" : "Differenz") + " der Zahlen " + nf(p[1]) + " und " + nf(p[2]); }
+function teilDat(p){ return p[0] === "z" ? "Zahl " + nf(p[1]) : (p[0] === "s" ? "Summe" : "Differenz") + " der Zahlen " + nf(p[1]) + " und " + nf(p[2]); }
+/* form 0: „Addiere t2 zur t1“, form 1: „Addiere zur t1 t2“ – t1 steht im Term vorne */
+function satz(op, t1, t2, form){
+  var vb = op === "+" ? "Addiere" : "Subtrahiere", s = op === "+" ? "zur" : "von der";
+  return form ? vb + " " + s + " " + teilDat(t1) + " " + teilAkk(t2) + "." : vb + " " + teilAkk(t2) + " " + s + " " + teilDat(t1) + ".";
+}
+function satzTerm(op, t1, t2){ return teilTerm(t1) + (op === "+" ? " + " : " − ") + teilTerm(t2); }
+
+/* Satz zerlegen: erkennt „Addiere/Subtrahiere“, das Signalwort und die beiden Teile */
+var TE_N = "(\\d{1,3}(?:[ \\u202f\\u00a0]\\d{3})*|\\d+)";
+function teilAusText(s){
+  var m = new RegExp("^(?:die |der )?(?:Zahl " + TE_N + "|(Summe|Differenz) (?:der Zahlen|von|aus) " + TE_N + " und " + TE_N + "|" + TE_N + ")$").exec(s);
+  if (!m) return null; var z = function(x){ return parseInt(String(x).replace(/[\s  ]/g, ""), 10); };
+  if (m[1] || m[5]) return ["z", z(m[1] || m[5])]; return [m[2] === "Summe" ? "s" : "d", z(m[3]), z(m[4])];
+}
+function zerlege(text){
+  var t = String(text).trim().replace(/[  ]/g, " ").replace(/\s+/g, " ").replace(/[„“"]/g, "");
+  var vb = /^(Addiere|Subtrahiere) /i.exec(t); if (!vb) return null;
+  var verb = /^a/i.test(vb[1]) ? "Addiere" : "Subtrahiere", op = verb === "Addiere" ? "+" : "-", rest = t.slice(vb[0].length).replace(/\.$/, ""), sig = op === "+" ? "(zur|zu)" : "(von)";
+  var w = rest.split(" ");
+  if (new RegExp("^" + sig + "$").test(w[0])){
+    for (var k = 2; k < w.length; k++){ var a = w.slice(1, k).join(" "), b = w.slice(k).join(" "), p1 = teilAusText(a.replace(/^der /, "")), p2 = teilAusText(b);
+      if (p1 && p2) return {op: op, verb: verb, signal: w[0], form: 1, t1: p1, t2: p2, text1: a, text2: b}; }
+  }
+  for (var k2 = 1; k2 < w.length - 1; k2++){ if (!new RegExp("^" + sig + "$").test(w[k2])) continue;
+    var y = w.slice(0, k2).join(" "), x = w.slice(k2 + 1).join(" "), q2 = teilAusText(y), q1 = teilAusText(x.replace(/^der /, ""));
+    if (q1 && q2) return {op: op, verb: verb, signal: w[k2], form: 0, t1: q1, t2: q2, text1: x, text2: y}; }
+  return null;
+}
+/* Zufallsaufgaben (alle Zwischenergebnisse und der Wert > 0) */
+function zTeil(art, stufe){
+  var lo = stufe === "b" ? 12 : 105, hi = stufe === "b" ? 95 : 690;
+  if (art === "z") return ["z", zz(lo, hi * (stufe === "b" ? 2 : 3))];
+  var a = zz(lo, hi), b = zz(lo, hi); if (art === "d" && a <= b + 5){ var t = a; a = b + zz(10, 90); b = t; }
+  return [art, a, b];
+}
+function teGut(a){ return teilWert(a.t1) >= 1 && teilWert(a.t2) >= 1 && teilWert(a.t1) !== teilWert(a.t2) && (a.op === "+" || teilWert(a.t1) - teilWert(a.t2) >= 1); }
+function teZufall(stufe){
+  var arten = stufe === "b" ? [["z", "z"], ["z", "s"], ["s", "z"]] : stufe === "e" ? [["z", "s"], ["z", "d"], ["s", "z"], ["d", "z"], ["s", "d"]] : [["s", "d"], ["d", "s"], ["s", "s"], ["d", "d"]];
+  var a, n = 0;
+  do { var ar = zw(arten); a = {op: zw(["+", "-"]), t1: zTeil(ar[0], stufe), t2: zTeil(ar[1], stufe), form: zw([0, 1])}; n++; } while (!teGut(a) && n < 500);
+  if (n >= 500) a = {op: "+", t1: ["z", 144], t2: ["s", 456, 378], form: 0};     /* Notbremse: feste, geprüfte Ersatzaufgabe */
+  return a;
+}
+/* unabhängige Kontrolle: Wert über die Teile direkt gerechnet = Wert der schrittweisen Rechnung; Satz ↔ Teile hin und zurück gleich */
+function teKontrolle(a){
+  var direkt = a.op === "+" ? teilWert(a.t1) + teilWert(a.t2) : teilWert(a.t1) - teilWert(a.t2);
+  var r0 = zerlege(satz(a.op, a.t1, a.t2, 0)), r1 = zerlege(satz(a.op, a.t1, a.t2, 1));
+  var gleich = function(r){ return r && r.op === a.op && r.t1.join() === a.t1.join() && r.t2.join() === a.t2.join(); };
+  return tWert(satzTerm(a.op, a.t1, a.t2)) === direkt && gleich(r0) && gleich(r1);
+}
+
+var TRAINER = [
+  { id: "sb", titel: "Satzbaukasten", art: "blitz",
+    erzeuge: function(stufe){ var a = teZufall(stufe), t = satzTerm(a.op, a.t1, a.t2);
+      return {frage: "Formuliere einen Text zum Term &nbsp;" + t + "&nbsp; und berechne seinen Wert.<br><span style=\"font-size:.8em;font-weight:600\">Was rechnest du zuletzt?</span>",
+        loesung: "Zuletzt wird " + (a.op === "+" ? "addiert → <b>Summe</b>" : "subtrahiert → <b>Differenz</b>") + ". Der vordere Teil " + teilTerm(a.t1) + " kommt nach „" + (a.op === "+" ? "zur" : "von der") + "“." +
+          "<br>„" + satz(a.op, a.t1, a.t2, 0) + "“<br>oder: „" + satz(a.op, a.t1, a.t2, 1) + "“" +
+          "<br>Wert: " + tKette(t).map(function(x, j, k){ return j === k.length - 1 ? erg(x) : x; }).join(" = "),
+        daten: a}; },
+    pruefe: function(a){ return teGut(a) && teKontrolle(a); } }
+];
+</script>
+
+<script>
+var QUELLE = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;   // unveränderte Seite, als Vorlage zum Speichern
+/* ═════════ Hilfsfunktionen (nicht ändern) ═════════ */
+function zz(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }          // ganze Zufallszahl a … b
+function zw(liste){ return liste[Math.floor(Math.random() * liste.length)]; }      // zufälliges Element
+function mischen(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function ggT(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ var t = b; b = a % b; a = t; } return a; }
+function nf(n){ /* Zahl für die Anzeige: Minuszeichen −, Tausender mit schmalem Leerzeichen, Dezimalkomma */
+  var neg = n < 0, s = String(Math.abs(n)).split("."), g = s[0], o = "";
+  while (g.length > 3){ o = " " + g.slice(-3) + o; g = g.slice(0, -3); }
+  return (neg ? "−" : "") + g + o + (s[1] ? "," + s[1] : ""); }
+function bruch(z, n){ return '<span class="bruch"><span>' + z + '</span><span>' + n + '</span></span>'; }
+function v(name){ return '<span class="v">' + name + '</span>'; }                   // Variable kursiv
+function erg(x){ return '<span class="erg">' + x + '</span>'; }                      // Ergebnis doppelt unterstrichen
+function zahl(text){ /* Schülereingabe → Zahl (akzeptiert − und -, Komma, Leerzeichen); sonst null */
+  var s = String(text).replace(/[\s ]/g, "").replace(/[−–]/g, "-").replace(",", ".");
+  return /^-?\d+(\.\d+)?$/.test(s) ? parseFloat(s) : null; }
+
+function marke(text, etikett, nr){ return '<span class="marke m' + (nr || 1) + '"><span>' + text + '</span><small>' + (etikett || "") + '</small></span>'; }   // Wort markieren mit Etikett (Sprachfächer)
+function tabelle(kopf, zeilen){ return '<table class="tabelle"><tr>' + kopf.map(function(k){ return '<th>' + k + '</th>'; }).join("") + '</tr>' + zeilen.map(function(z){ return '<tr>' + z.map(function(c){ return /^\*/.test(c) ? '<td class="hl">' + c.slice(1) + '</td>' : '<td>' + c + '</td>'; }).join("") + '</tr>'; }).join("") + '</table>'; }   // kleine Tabelle; Zelle mit * am Anfang wird markiert
+
+/* ═════════ Motor (nicht ändern) ═════════ */
+function starte(){
+  var STUFEN = [["b", "Basis"], ["e", "Erweitert"], ["k", "Knobeln"]], zustand = {}, aktiv = null;
+  var main = document.getElementById("main"), reiter = document.getElementById("reiter");
+  function el(html){ var d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
+  function esc(s){ return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+  function stufenwahl(id){ return '<span class="seg" data-stufen="' + id + '">' + STUFEN.map(function(s, i){ return '<button data-s="' + s[0] + '"' + (i ? "" : ' class="an"') + '>' + s[1] + '</button>'; }).join("") + '</span>'; }
+
+  TRAINER.forEach(function(t, i){
+    var z = zustand[t.id] = {stufe: "b", aufgabe: null, i: 0, schritte: []};
+    reiter.appendChild(el('<button data-ziel="' + t.id + '">' + esc(t.titel) + '</button>'));
+    var sek;
+    if (t.art === "vorfuehrer"){
+      var gruppen = {}; (t.presets || []).forEach(function(p){ (gruppen[p.gruppe] = gruppen[p.gruppe] || []).push(p); });
+      sek = el('<section class="trainer" id="' + t.id + '"><div class="karte"><h2>' + esc(t.titel) + '</h2>' +
+        '<div class="zeile"><input class="eingabe" placeholder="' + esc(t.eingabe.platzhalter) + '" value="' + esc(t.eingabe.beispiel) + '">' +
+        '<button class="primaer" data-a="start">Start</button><button data-a="weiter">Nächster Schritt ▸</button><button data-a="zurueck">◂</button><button data-a="alle">Alles zeigen</button>' +
+        (t.zufall ? stufenwahl(t.id) + '<button data-a="zufall">🎲 Zufall</button>' : "") + '</div>' +
+        Object.keys(gruppen).map(function(g){ return '<div class="zeile"><span class="lbl">' + esc(g) + ':</span>' + gruppen[g].map(function(p){ return '<button class="preset" data-t="' + esc(p.text) + '">' + esc(p.label) + '</button>'; }).join("") + '</div>'; }).join("") +
+        '<div class="buehne"><div><div class="aufgabe"></div><div class="bild"></div><div class="tafelzeilen"></div></div><ol class="erkl"></ol></div><div class="info"></div></div></section>');
+    } else {
+      sek = el('<section class="trainer" id="' + t.id + '"><div class="karte"><h2>' + esc(t.titel) + '</h2>' +
+        '<div class="zeile">' + stufenwahl(t.id) + '<button class="primaer" data-a="neu">Neue Aufgabe</button><button data-a="auf">Aufdecken</button><button data-a="zeigen" hidden>Im Vorführer zeigen ▸</button></div>' +
+        '<div class="frage">Klick auf „Neue Aufgabe“.</div><div class="loesung"></div></div></section>');
+    }
+    main.appendChild(sek);
+    sek.addEventListener("click", function(e){ var b = e.target.closest("button"); if (!b) return;
+      if (b.parentNode.hasAttribute("data-stufen")){ z.stufe = b.getAttribute("data-s"); b.parentNode.querySelectorAll("button").forEach(function(x){ x.classList.toggle("an", x === b); }); return; }
+      if (b.classList.contains("preset")){ sek.querySelector(".eingabe").value = b.getAttribute("data-t"); start(t); return; }
+      var a = b.getAttribute("data-a"); if (a) aktion(t, a); });
+    if (t.art === "vorfuehrer") sek.querySelector(".eingabe").addEventListener("keydown", function(e){ if (e.key === "Enter") start(t); });
+  });
+
+  function zeige(id){ aktiv = TRAINER.filter(function(t){ return t.id === id; })[0] || TRAINER[0];
+    main.querySelectorAll("section.trainer").forEach(function(s){ s.classList.toggle("aktiv", s.id === aktiv.id); });
+    reiter.querySelectorAll("button").forEach(function(b){ b.classList.toggle("an", b.getAttribute("data-ziel") === aktiv.id); }); }
+  reiter.addEventListener("click", function(e){ var b = e.target.closest("button[data-ziel]"); if (b) zeige(b.getAttribute("data-ziel")); });
+
+  function start(t){ var sek = document.getElementById(t.id), z = zustand[t.id], info = sek.querySelector(".info");
+    var a; try { a = t.parse(sek.querySelector(".eingabe").value); } catch (err){ a = {fehler: "Das kann ich nicht lesen."}; }
+    if (!a || a.fehler){ info.textContent = (a && a.fehler) || "Das kann ich nicht lesen."; info.classList.add("fehler"); return; }
+    info.classList.remove("fehler"); info.textContent = a.hinweis || "Mit „Nächster Schritt ▸“ (oder →) geht es weiter.";
+    z.aufgabe = a; z.schritte = t.schritte(a); z.i = 0; male(t); }
+  function male(t){ var sek = document.getElementById(t.id), z = zustand[t.id]; if (!z.aufgabe) return;
+    var s = z.schritte.slice(0, z.i + 1), bild = "";
+    s.forEach(function(x){ if (x.bild != null) bild = x.bild; });
+    sek.querySelector(".aufgabe").innerHTML = t.titelVon ? t.titelVon(z.aufgabe) : "";
+    sek.querySelector(".bild").innerHTML = bild;
+    sek.querySelector(".tafelzeilen").innerHTML = s.filter(function(x){ return x.zeile; }).map(function(x){ return "<div>" + x.zeile + "</div>"; }).join("");
+    sek.querySelector(".erkl").innerHTML = s.map(function(x){ return "<li>" + x.erkl + "</li>"; }).join(""); }
+  function aktion(t, a){ var z = zustand[t.id], sek = document.getElementById(t.id);
+    if (t.art === "vorfuehrer"){
+      if (a === "start") start(t);
+      else if (a === "weiter" && z.aufgabe && z.i < z.schritte.length - 1){ z.i++; male(t); }
+      else if (a === "zurueck" && z.aufgabe && z.i > 0){ z.i--; male(t); }
+      else if (a === "alle" && z.aufgabe){ z.i = z.schritte.length - 1; male(t); }
+      else if ((a === "zufall" || a === "neu") && t.zufall){ sek.querySelector(".eingabe").value = t.zufall(z.stufe); start(t); }
+    } else {
+      if (a === "neu"){ z.aufgabe = t.erzeuge(z.stufe); sek.querySelector(".frage").innerHTML = z.aufgabe.frage; sek.querySelector(".loesung").innerHTML = "";
+        sek.querySelector('[data-a="zeigen"]').hidden = !z.aufgabe.vorfuehren; }
+      else if (a === "auf" && z.aufgabe) sek.querySelector(".loesung").innerHTML = z.aufgabe.loesung;
+      else if (a === "zeigen" && z.aufgabe && z.aufgabe.vorfuehren){ var ziel = TRAINER.filter(function(x){ return x.id === z.aufgabe.vorfuehren.trainer; })[0];
+        if (ziel){ zeige(ziel.id); document.getElementById(ziel.id).querySelector(".eingabe").value = z.aufgabe.vorfuehren.text; start(ziel); window.scrollTo({top: 0, behavior: "smooth"}); } }
+    } }
+
+  /* Kopfleiste und Tasten */
+  var fs = 22; function schrift(d){ fs = Math.max(14, Math.min(40, fs + d)); document.documentElement.style.setProperty("--fs", fs + "px"); }
+  document.getElementById("bKlein").onclick = function(){ schrift(-2); }; document.getElementById("bGross").onclick = function(){ schrift(2); };
+  function tafel(){ document.body.classList.toggle("tafel"); document.getElementById("bTafel").classList.toggle("an"); }
+  function voll(){ if (!document.fullscreenElement){ var r = document.documentElement; (r.requestFullscreen || r.webkitRequestFullscreen || function(){}).call(r); } else if (document.exitFullscreen) document.exitFullscreen(); }
+  document.getElementById("bTafel").onclick = tafel; document.getElementById("bVoll").onclick = voll;
+  document.addEventListener("keydown", function(e){
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key, t = aktiv; if (!t) return;
+    if (k === "ArrowRight" || k === " "){ e.preventDefault(); var offen = t.art === "blitz" && zustand[t.id].aufgabe && document.getElementById(t.id).querySelector(".loesung").innerHTML !== "";
+      aktion(t, t.art === "vorfuehrer" ? "weiter" : (zustand[t.id].aufgabe && !offen ? "auf" : "neu")); }
+    else if (k === "ArrowLeft") aktion(t, "zurueck");
+    else if (k === "a" || k === "A") aktion(t, t.art === "vorfuehrer" ? "alle" : "auf");
+    else if (k === "n" || k === "N") aktion(t, t.art === "vorfuehrer" ? "zufall" : "neu");
+    else if (k === "t" || k === "T") tafel(); else if (k === "f" || k === "F") voll();
+    else if (k === "+") schrift(2); else if (k === "-") schrift(-2);
+    else if (/^[1-9]$/.test(k) && TRAINER[+k - 1]) zeige(TRAINER[+k - 1].id); });
+
+  /* Selbsttest beim Laden: Presets lesbar, Zufallsaufgaben und Generatoren je Stufe 300-mal mit pruefe() nachgerechnet */
+  var fehler = [], n = 0;
+  TRAINER.forEach(function(t){
+    try {
+      if (t.art === "vorfuehrer"){
+        (t.presets || []).concat([{label: "Beispiel", text: t.eingabe.beispiel}]).forEach(function(p){ var a = t.parse(p.text); n++;
+          if (!a || a.fehler) fehler.push(t.titel + " – " + p.label + ": nicht lesbar"); else { t.schritte(a); if (t.pruefe && !t.pruefe(a)) fehler.push(t.titel + " – " + p.label + ": Prüfung falsch"); } });
+        if (t.zufall) STUFEN.forEach(function(s){ for (var i = 0; i < 300; i++){ var tx = t.zufall(s[0]), a = t.parse(tx); n++;
+          if (!a || a.fehler){ fehler.push(t.titel + " – Zufall " + s[1] + ": nicht lesbar: " + tx); break; } t.schritte(a); if (t.pruefe && !t.pruefe(a)){ fehler.push(t.titel + " – Zufall " + s[1] + ": " + tx); break; } } });
+      } else STUFEN.forEach(function(s){ for (var i = 0; i < 300; i++){ var g = t.erzeuge(s[0]); n++;
+        if (!g || !g.frage || !g.loesung || (t.pruefe && !t.pruefe(g.daten))){ fehler.push(t.titel + " – " + s[1] + ": " + String(g && g.frage).replace(/<[^>]+>/g, "")); break; } } });
+    } catch (err){ fehler.push(t.titel + ": Programmfehler – " + err.message); }
+  });
+  var st = document.getElementById("selbsttest");
+  if (fehler.length){ st.className = "fehler"; st.textContent = "⚠ Selbsttest: " + fehler.length + " Problem(e) – " + fehler.slice(0, 3).join(" | ") + " – bitte dem Assistenten melden."; }
+  else st.textContent = "Selbsttest ✓ " + n + " Aufgaben geprüft";
+  document.title = NAME + " – " + THEMA; document.querySelector("header h1").textContent = NAME + " – " + THEMA;
+  zeige(TRAINER[0].id);
+  TRAINER.forEach(function(t){ if (t.art === "vorfuehrer") start(t); });
+}
+
+/* ═════════ Baukasten: Code einlesen, starten, speichern ═════════ */
+(function(){
+  var codeTag = document.getElementById("trainer-code"), meldung = document.getElementById("meldung"), aktuellerCode = "";
+  function bereinigen(c){ return String(c).replace(/^\s*```[a-zA-Z]*\s*\n?/, "").replace(/\n?\s*```\s*$/, "").trim(); }
+  function laufen(code){
+    window.THEMA = undefined; window.TRAINER = undefined; window.NAME = undefined;
+    try { (0, eval)(code + "\n;window.THEMA = (typeof THEMA !== \"undefined\") ? THEMA : window.THEMA; window.TRAINER = (typeof TRAINER !== \"undefined\") ? TRAINER : window.TRAINER; window.NAME = (typeof NAME !== \"undefined\") ? NAME : window.NAME;"); } catch (err){ return "Der Code enthält einen Fehler: " + err.message + ". Bitte diese Meldung an den Assistenten schicken."; }
+    if (!Array.isArray(window.TRAINER) || !window.TRAINER.length) return "Im Code fehlt „var TRAINER = [ … ]“. Bitte den ganzen Code-Block kopieren.";
+    if (typeof window.THEMA !== "string") window.THEMA = "Übung";
+    if (typeof window.NAME !== "string" || !window.NAME) window.NAME = "Trainer";
+    try { starte(); } catch (err){ return "Der Trainer lässt sich nicht starten: " + err.message + ". Bitte diese Meldung an den Assistenten schicken."; }
+    return "";
+  }
+  function speichern(){
+    var sicher = aktuellerCode.replace(/<\/script/gi, "<\\/script");
+    var datei = QUELLE.replace(/<script type="text\/plain" id="trainer-code">[\s\S]*?<\/script>/, function(){ return '<script type="text/plain" id="trainer-code">\n' + sicher + '\n</' + 'script>'; });
+    var name = (String(window.NAME || "Trainer") + "_" + String(window.THEMA || "Thema")).replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/Ä/g, "Ae").replace(/Ö/g, "Oe").replace(/Ü/g, "Ue").replace(/ß/g, "ss").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "") + ".html";
+    var url = URL.createObjectURL(new Blob([datei], {type: "text/html"})), a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+  document.getElementById("bSpeichern").onclick = speichern;
+  var gespeichert = codeTag.textContent.trim();
+  if (gespeichert){
+    aktuellerCode = gespeichert; var f = laufen(gespeichert);
+    if (f){ document.getElementById("main").innerHTML = '<div class="karte"><b>' + f + '</b></div>'; }
+    document.getElementById("tastenhilfe").hidden = false;
+  } else {
+    document.getElementById("baukasten").hidden = false;
+    document.querySelector("header h1").textContent = "Trainer – Baukasten";
+    document.getElementById("bStart").onclick = function(){
+      var code = bereinigen(document.getElementById("codeFeld").value);
+      if (!code){ meldung.textContent = "Bitte zuerst den Code einfügen."; meldung.className = "meldung fehler"; return; }
+      var f = laufen(code);
+      if (f){ meldung.textContent = f; meldung.className = "meldung fehler"; return; }
+      aktuellerCode = code; document.getElementById("baukasten").hidden = true; document.getElementById("tastenhilfe").hidden = false;
+      document.getElementById("bSpeichern").style.display = "inline-block";
+    };
+  }
+})();
+</script>
+</body>
+</html>

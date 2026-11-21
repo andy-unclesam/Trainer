@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lateintrainer – Satzglieder bestimmen</title>
+<style>
+:root{--ink:#1f2937;--grau:#64748b;--rand:#cbd5e1;--soft:#f1f5f9;--blau:#1d4ed8;--blau-bg:#dbeafe;--gruen:#15803d;--gruen-bg:#dcfce7;--rot:#b91c1c;--gelb:#fef3c7;--bg:#f8fafc;--karte:#fff;--fs:22px}
+body.tafel{--ink:#f8fafc;--grau:#cbd5e1;--rand:#475569;--soft:#334155;--blau:#93c5fd;--blau-bg:#1e3a8a;--gruen:#86efac;--gruen-bg:#14532d;--gelb:#713f12;--bg:#1e293b;--karte:#273449}
+*{box-sizing:border-box}
+html{font-size:var(--fs)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45;font-variant-numeric:lining-nums tabular-nums}
+header{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:center;padding:.45rem .8rem;background:var(--karte);border-bottom:2px solid var(--rand)}
+header h1{font-size:1rem;margin:0 .6rem 0 0}
+@media (max-width:600px){header h1{font-size:.85rem} .ctrl{margin-left:0}}
+nav.reiter{display:flex;gap:.3rem;flex-wrap:wrap}
+.ctrl{display:flex;gap:.3rem;margin-left:auto;flex-wrap:wrap}
+button,.btn{font:inherit;font-size:.75rem;font-weight:700;min-height:2.2rem;min-width:2.2rem;padding:.2rem .7rem;border-radius:.5rem;border:2px solid var(--rand);background:var(--karte);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--blau)}
+button.an,button.primaer{background:var(--blau);border-color:var(--blau);color:#fff}
+body.tafel button.an,body.tafel button.primaer{color:#0f172a}
+main{max-width:70rem;margin:0 auto;padding:.8rem}
+section.trainer{display:none} section.trainer.aktiv{display:block}
+.karte{background:var(--karte);border:2px solid var(--rand);border-radius:.8rem;padding:.7rem .9rem;margin-bottom:.8rem}
+.karte h2{font-size:1rem;margin:0 0 .5rem}
+.zeile{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin:.35rem 0}
+.zeile .lbl{font-size:.75rem;color:var(--grau);font-weight:700}
+input.eingabe{font:inherit;font-size:.9rem;min-height:2.2rem;padding:.1rem .5rem;border:2px solid var(--rand);border-radius:.5rem;background:var(--karte);color:var(--ink);min-width:12rem;flex:1 1 16rem;max-width:30rem}
+.preset{font-size:.7rem;font-weight:600}
+.buehne{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:1rem;align-items:start;margin-top:.5rem}
+@media (max-width:800px){.buehne{grid-template-columns:1fr}}
+.aufgabe{font-size:1.3rem;font-weight:800;margin-bottom:.3rem}
+.bild{margin:.3rem 0}
+.bild svg{max-width:100%;height:auto}
+.tafelzeilen div{font-size:1.15rem;margin:.15rem 0;animation:auf .3s ease}
+ol.erkl{margin:0;padding-left:1.4rem;font-size:.85rem}
+ol.erkl li{margin:.3rem 0;padding:.15rem .35rem;border-radius:.35rem;animation:auf .3s ease}
+ol.erkl li:last-child{background:var(--gelb)}
+.info{font-size:.75rem;color:var(--grau);min-height:1.2em;margin-top:.3rem}
+.info.fehler{color:var(--rot);font-weight:700}
+.frage{font-size:1.25rem;font-weight:700;margin:.5rem 0;min-height:1.6em}
+.loesung{font-size:.95rem;border-top:2px dashed var(--rand);padding-top:.4rem;margin-top:.4rem}
+.loesung:empty{display:none}
+.erg{display:inline-block;border-bottom:4px double currentColor;padding:0 .1em;font-weight:800}
+.hl{background:var(--gelb);border-radius:.2em;padding:0 .1em}
+.v{font-style:italic;font-weight:800;color:#c2410c}
+body.tafel .v{color:#fdba74}
+.bruch{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .1em;line-height:1.1}
+.bruch>span:first-child{border-bottom:2px solid currentColor;padding:0 .15em}
+.seg{display:inline-flex;gap:.2rem;flex-wrap:wrap}
+#selbsttest{font-size:.65rem;color:var(--grau);text-align:right;padding:0 .8rem .6rem}
+#selbsttest.fehler{color:var(--rot);font-weight:700;font-size:.8rem}
+.hilfe{font-size:.6rem;color:var(--grau);text-align:center;padding-bottom:.6rem}
+.marke{display:inline-flex;flex-direction:column;align-items:center;vertical-align:top;margin:0 .12em;line-height:1.25}
+.marke>span:first-child{padding:0 .08em}
+.marke>small{font-size:.55em;font-weight:800;letter-spacing:.02em;margin-top:.1em}
+.m1{color:#1d4ed8}.m1>span:first-child{border-bottom:3px solid currentColor}
+.m2{color:#b91c1c}.m2>span:first-child{border-bottom:5px double currentColor}
+.m3{color:#15803d}.m3>span:first-child{border-bottom:3px dashed currentColor}
+.m4{color:#7c3aed}.m4>span:first-child{border-bottom:3px dotted currentColor}
+.m5{color:#c2410c}.m5>span:first-child{border-bottom:4px solid currentColor;padding-bottom:1px}
+body.tafel .m1{color:#93c5fd} body.tafel .m2{color:#fca5a5} body.tafel .m3{color:#86efac} body.tafel .m4{color:#c4b5fd} body.tafel .m5{color:#fdba74}
+.tabelle{border-collapse:collapse;font-size:.85rem;margin:.2rem 0}
+.tabelle th,.tabelle td{border:1px solid var(--rand);padding:.15rem .5rem;text-align:left}
+.tabelle th{background:var(--soft);font-size:.75rem}
+.tabelle td.hl{font-weight:800}
+@keyframes auf{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+#baukasten{max-width:60rem;margin:1rem auto;padding:0 .8rem}
+#baukasten textarea{width:100%;min-height:14rem;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;border:2px solid var(--rand);border-radius:.6rem;padding:.6rem;background:var(--karte);color:var(--ink)}
+#baukasten .meldung{font-size:.8rem;margin:.4rem 0;min-height:1.3em}
+#baukasten .meldung.fehler{color:var(--rot);font-weight:700}
+#bSpeichern{display:none}
+@media print{header .ctrl,nav.reiter,.hilfe,#selbsttest{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Lateintrainer – Satzglieder bestimmen</h1>
+  <nav class="reiter" id="reiter"></nav>
+  <div class="ctrl">
+    <button id="bKlein" title="Schrift kleiner (−)">A−</button><button id="bGross" title="Schrift größer (+)">A+</button>
+    <button id="bTafel" title="Tafelmodus (T)">Tafelmodus</button><button id="bVoll" title="Vollbild (F)">Vollbild</button><button id="bSpeichern" title="Trainer als eigene Datei speichern">💾 Als Datei speichern</button>
+  </div>
+</header>
+<section id="baukasten" hidden>
+  <div class="karte">
+    <h2>Trainer-Code einfügen</h2>
+    <p style="font-size:.8rem;margin:.2rem 0 .6rem">Kopieren Sie den Code-Block aus der Antwort des Assistenten (alles im Kasten, beginnt mit <code>var THEMA</code>) und fügen Sie ihn hier ein. Danach „Trainer starten“. Passt der Trainer, oben auf „💾 Als Datei speichern“ – die gespeicherte Datei startet beim Öffnen sofort, ohne diesen Schritt. Es werden keine Daten übertragen; alles läuft in Ihrem Browser.</p>
+    <textarea id="codeFeld" spellcheck="false" placeholder="var THEMA = &quot;…&quot;;&#10;…&#10;var TRAINER = [ … ];"></textarea>
+    <div class="zeile"><button class="primaer" id="bStart">Trainer starten</button></div>
+    <div class="meldung" id="meldung"></div>
+  </div>
+</section>
+<main id="main"></main>
+<div id="selbsttest"></div>
+<div class="hilfe" id="tastenhilfe" hidden><b>→</b> oder <b>Leertaste</b> nächster Schritt – <b>←</b> zurück – <b>A</b> alles zeigen – <b>N</b> neue Aufgabe – <b>T</b> Tafelmodus – <b>F</b> Vollbild – <b>+/−</b> Schrift</div>
+
+<!-- Hier steht nach dem Speichern der Trainer-Code; leer = Baukasten-Ansicht -->
+<script type="text/plain" id="trainer-code">
+var NAME = "Lateintrainer";
+var THEMA = "Satzglieder bestimmen";
+/* ═══ Wortschatz (eigener Grundwortschatz, lehrwerkunabhängig) ═══
+   Nomen: Wörterbuchform, Genitiv, Genus, Bedeutung, Stufe (b/e/k), belebt (kann Subjekt/Dativobjekt sein),
+   dt: deutsche Formen mit Artikel [Nom, Akk, Dat] im Singular und Plural – nur Wörter mit dt kommen im Satz-Trainer vor. */
+var LA_NOMEN = [
+  {lem: "puella", gen: "puellae", g: "f", de: "Mädchen", st: "b", bel: true, dt: [["das Mädchen", "das Mädchen", "dem Mädchen"], ["die Mädchen", "die Mädchen", "den Mädchen"]]},
+  {lem: "amica", gen: "amicae", g: "f", de: "Freundin", st: "b", bel: true, dt: [["die Freundin", "die Freundin", "der Freundin"], ["die Freundinnen", "die Freundinnen", "den Freundinnen"]]},
+  {lem: "villa", gen: "villae", g: "f", de: "Landhaus", st: "b", bel: false, dt: [["das Landhaus", "das Landhaus", "dem Landhaus"], ["die Landhäuser", "die Landhäuser", "den Landhäusern"]]},
+  {lem: "silva", gen: "silvae", g: "f", de: "Wald", st: "b"},
+  {lem: "via", gen: "viae", g: "f", de: "Weg, Straße", st: "b"},
+  {lem: "dominus", gen: "domini", g: "m", de: "Herr", st: "b", bel: true, dt: [["der Herr", "den Herrn", "dem Herrn"], ["die Herren", "die Herren", "den Herren"]]},
+  {lem: "servus", gen: "servi", g: "m", de: "Sklave", st: "b", bel: true, dt: [["der Sklave", "den Sklaven", "dem Sklaven"], ["die Sklaven", "die Sklaven", "den Sklaven"]]},
+  {lem: "amicus", gen: "amici", g: "m", de: "Freund", st: "b", bel: true, dt: [["der Freund", "den Freund", "dem Freund"], ["die Freunde", "die Freunde", "den Freunden"]]},
+  {lem: "equus", gen: "equi", g: "m", de: "Pferd", st: "b", bel: false, dt: [["das Pferd", "das Pferd", "dem Pferd"], ["die Pferde", "die Pferde", "den Pferden"]]},
+  {lem: "hortus", gen: "horti", g: "m", de: "Garten", st: "b"},
+  {lem: "donum", gen: "doni", g: "n", de: "Geschenk", st: "e", bel: false, dt: [["das Geschenk", "das Geschenk", "dem Geschenk"], ["die Geschenke", "die Geschenke", "den Geschenken"]]},
+  {lem: "templum", gen: "templi", g: "n", de: "Tempel", st: "e", bel: false, dt: [["der Tempel", "den Tempel", "dem Tempel"], ["die Tempel", "die Tempel", "den Tempeln"]]},
+  {lem: "forum", gen: "fori", g: "n", de: "Marktplatz, Forum", st: "e"},
+  {lem: "puer", gen: "pueri", g: "m", de: "Junge", st: "e"},
+  {lem: "ager", gen: "agri", g: "m", de: "Acker, Feld", st: "e"},
+  {lem: "senator", gen: "senatoris", g: "m", de: "Senator", st: "k", bel: true, dt: [["der Senator", "den Senator", "dem Senator"], ["die Senatoren", "die Senatoren", "den Senatoren"]]},
+  {lem: "mercator", gen: "mercatoris", g: "m", de: "Kaufmann", st: "k", bel: true, dt: [["der Kaufmann", "den Kaufmann", "dem Kaufmann"], ["die Kaufleute", "die Kaufleute", "den Kaufleuten"]]},
+  {lem: "pater", gen: "patris", g: "m", de: "Vater", st: "k", bel: true, dt: [["der Vater", "den Vater", "dem Vater"], ["die Väter", "die Väter", "den Vätern"]]},
+  {lem: "mater", gen: "matris", g: "f", de: "Mutter", st: "k", bel: true, dt: [["die Mutter", "die Mutter", "der Mutter"], ["die Mütter", "die Mütter", "den Müttern"]]},
+  {lem: "rex", gen: "regis", g: "m", de: "König", st: "k"},
+  {lem: "vox", gen: "vocis", g: "f", de: "Stimme", st: "k"},
+  {lem: "nomen", gen: "nominis", g: "n", de: "Name", st: "k"},
+  {lem: "corpus", gen: "corporis", g: "n", de: "Körper", st: "k"}
+];
+var LA_K = ["N", "G", "D", "A", "B"];                                   /* B = Ablativ */
+var LA_KN = {N: "Nominativ", G: "Genitiv", D: "Dativ", A: "Akkusativ", B: "Ablativ"};
+var LA_KK = {N: "Nom.", G: "Gen.", D: "Dat.", A: "Akk.", B: "Abl."};
+var LA_FRAGE = {N: "wer oder was?", G: "wessen?", D: "wem?", A: "wen oder was?", B: "womit? wodurch? wo? wann?"};
+var LA_END = {                                                          /* Endungen N G D A B; "#" = Grundform (Nom. Sg.) */
+  a:  [["a", "ae", "ae", "am", "a"], ["ae", "arum", "is", "as", "is"]],
+  o:  [["#", "i", "o", "um", "o"], ["i", "orum", "is", "os", "is"]],
+  on: [["um", "i", "o", "um", "o"], ["a", "orum", "is", "a", "is"]],
+  k:  [["#", "is", "i", "em", "e"], ["es", "um", "ibus", "es", "ibus"]],
+  kn: [["#", "is", "i", "#", "e"], ["a", "um", "ibus", "a", "ibus"]]
+};
+var LA_DN = {a: "a-Deklination", o: "o-Deklination", on: "o-Deklination (Neutrum)", k: "3. Deklination", kn: "3. Deklination (Neutrum)"};
+function laDekl(w){ if (/ae$/.test(w.gen)) return "a"; if (/is$/.test(w.gen)) return w.g === "n" ? "kn" : "k"; return /um$/.test(w.lem) ? "on" : "o"; }
+function laStamm(w){ return w.gen.replace(/(ae|is|i)$/, ""); }
+function laEnd(w, k, n){ return LA_END[laDekl(w)][n][LA_K.indexOf(k)]; }
+function laForm(w, k, n){ var e = laEnd(w, k, n); return e === "#" ? w.lem : laStamm(w) + e; }
+function laEintrag(w){ return "<i>" + w.lem + ", " + w.gen + "</i> " + w.g + ". – " + w.de; }
+function laNorm(s){ return String(s).toLowerCase().replace(/[āáà]/g, "a").replace(/[ēéè]/g, "e").replace(/[īíì]/g, "i").replace(/[ōóò]/g, "o").replace(/[ūúù]/g, "u").replace(/[^a-z]/g, ""); }
+function laBestimme(form, liste){ var f = laNorm(form), t = []; (liste || LA_NOMEN).forEach(function(w){ [0, 1].forEach(function(n){ LA_K.forEach(function(k){ if (laForm(w, k, n) === f) t.push({w: w, k: k, n: n}); }); }); }); return t; }
+function laNum(n){ return n ? "Plural" : "Singular"; }
+function laKurz(t){ return LA_KK[t.k] + " " + (t.n ? "Pl." : "Sg."); }
+function laTabelle(w, treffer){
+  var z = LA_K.map(function(k){ return [LA_KK[k]].concat([0, 1].map(function(n){
+    var e = laEnd(w, k, n), f = e === "#" ? w.lem : laStamm(w) + "<b>" + e + "</b>", hit = (treffer || []).some(function(t){ return t.w === w && t.k === k && t.n === n; });
+    return (hit ? "*" : "") + f; })); });
+  return tabelle(["", "Singular", "Plural"], z);
+}
+/* Unabhängige Kontrolle der Endungstabelle: Musterwörter Form für Form von Hand geschrieben (N G D A B, Sg | Pl) */
+var LA_MUSTER = {
+  amica: "amica amicae amicae amicam amica | amicae amicarum amicis amicas amicis",
+  dominus: "dominus domini domino dominum domino | domini dominorum dominis dominos dominis",
+  puer: "puer pueri puero puerum puero | pueri puerorum pueris pueros pueris",
+  ager: "ager agri agro agrum agro | agri agrorum agris agros agris",
+  donum: "donum doni dono donum dono | dona donorum donis dona donis",
+  senator: "senator senatoris senatori senatorem senatore | senatores senatorum senatoribus senatores senatoribus",
+  rex: "rex regis regi regem rege | reges regum regibus reges regibus",
+  nomen: "nomen nominis nomini nomen nomine | nomina nominum nominibus nomina nominibus"
+};
+var laMusterErg = null;
+function laMusterOk(){
+  if (laMusterErg !== null) return laMusterErg;
+  laMusterErg = Object.keys(LA_MUSTER).every(function(lem){ var w = LA_NOMEN.filter(function(x){ return x.lem === lem; })[0], soll = LA_MUSTER[lem].split(" | ");
+    return w && [0, 1].every(function(n){ return soll[n].split(" ").join() === LA_K.map(function(k){ return laForm(w, k, n); }).join(); }); })
+    && LA_NOMEN.every(function(w){ return laForm(w, "N", 0) === w.lem && laForm(w, "G", 0) === w.gen; });
+  return laMusterErg;
+}
+
+/* ═══ Verben (Präsens, a- und e-Konjugation) und Satzbau ═══ */
+var LA_PERS_DE = ["ich", "du", "er (sie, es)", "wir", "ihr", "sie"];
+var LA_PERS_NAME = ["1. Person Singular", "2. Person Singular", "3. Person Singular", "1. Person Plural", "2. Person Plural", "3. Person Plural"];
+var LA_KONJ = {a: ["o", "as", "at", "amus", "atis", "ant"], e: ["eo", "es", "et", "emus", "etis", "ent"]};
+var LA_PERS_END = ["-o", "-s", "-t", "-mus", "-tis", "-nt"];
+/* val: A = braucht Akkusativobjekt, D = Dativobjekt, DA = beides, 0 = keins; obj: Art des Akkusativobjekts (p = Person, s = Sache, x = beides) */
+var LA_VERBEN = [
+  {inf: "vocare", s: "voc", kj: "a", val: "A", obj: "p", de: ["rufe", "rufst", "ruft", "rufen", "ruft", "rufen"], st: "b"},
+  {inf: "laudare", s: "laud", kj: "a", val: "A", obj: "x", de: ["lobe", "lobst", "lobt", "loben", "lobt", "loben"], st: "b"},
+  {inf: "salutare", s: "salut", kj: "a", val: "A", obj: "p", de: ["begrüße", "begrüßt", "begrüßt", "begrüßen", "begrüßt", "begrüßen"], st: "b"},
+  {inf: "exspectare", s: "exspect", kj: "a", val: "A", obj: "x", de: ["erwarte", "erwartest", "erwartet", "erwarten", "erwartet", "erwarten"], st: "b"},
+  {inf: "videre", s: "vid", kj: "e", val: "A", obj: "x", de: ["sehe", "siehst", "sieht", "sehen", "seht", "sehen"], st: "b"},
+  {inf: "monere", s: "mon", kj: "e", val: "A", obj: "p", de: ["ermahne", "ermahnst", "ermahnt", "ermahnen", "ermahnt", "ermahnen"], st: "b"},
+  {inf: "dare", s: "d", kj: "a", val: "DA", obj: "s", objL: ["donum", "equus"], de: ["gebe", "gibst", "gibt", "geben", "gebt", "geben"], st: "e"},
+  {inf: "monstrare", s: "monstr", kj: "a", val: "DA", obj: "s", objL: ["villa", "templum", "equus", "donum"], de: ["zeige", "zeigst", "zeigt", "zeigen", "zeigt", "zeigen"], st: "e"},
+  {inf: "respondere", s: "respond", kj: "e", val: "D", de: ["antworte", "antwortest", "antwortet", "antworten", "antwortet", "antworten"], st: "e"},
+  {inf: "ambulare", s: "ambul", kj: "a", val: "0", de: ["wandere", "wanderst", "wandert", "wandern", "wandert", "wandern"], st: "e"},
+  {inf: "clamare", s: "clam", kj: "a", val: "0", de: ["schreie", "schreist", "schreit", "schreien", "schreit", "schreien"], st: "e"}
+];
+function laVForm(vb, p){ return vb.s + LA_KONJ[vb.kj][p]; }
+/* Adverbialien: Adverbien und feste Präpositionalausdrücke; art bestimmt die Stelle im deutschen Satz */
+var LA_ADV = [
+  {la: "hodie", de: "heute", art: "z", erkl: "Adverb – wann?"},
+  {la: "saepe", de: "oft", art: "z", erkl: "Adverb – wie oft?"},
+  {la: "subito", de: "plötzlich", art: "z", erkl: "Adverb – wann? wie?"},
+  {la: "in villa", de: "im Landhaus", art: "o", erkl: "in + Ablativ – wo?"},
+  {la: "in silva", de: "im Wald", art: "o", erkl: "in + Ablativ – wo?"},
+  {la: "in foro", de: "auf dem Marktplatz", art: "o", erkl: "in + Ablativ – wo?"},
+  {la: "in horto", de: "im Garten", art: "o", erkl: "in + Ablativ – wo?"},
+  {la: "ad villam", de: "zum Landhaus", art: "r", erkl: "ad + Akkusativ – wohin?"},
+  {la: "in silvam", de: "in den Wald", art: "r", erkl: "in + Akkusativ – wohin?"},
+  {la: "cum amicis", de: "mit den Freunden", art: "m", erkl: "cum + Ablativ – mit wem?"},
+  {la: "cum amica", de: "mit der Freundin", art: "m", erkl: "cum + Ablativ – mit wem?"},
+  {la: "cum servo", de: "mit dem Sklaven", art: "m", erkl: "cum + Ablativ – mit wem?"}
+];
+var LA_ROLLE = {P: ["Präd.", 2, "Prädikat"], S: ["Subj.", 1, "Subjekt"], AO: ["Akk-Obj.", 3, "Akkusativobjekt"], DO: ["Dat-Obj.", 4, "Dativobjekt"], ADV: ["Adv.", 5, "Adverbiale"]};
+var LA_SATZNOMEN = LA_NOMEN.filter(function(w){ return w.dt; });
+
+/* Satz lesen: Wörter, feste Ausdrücke, alle möglichen Zuordnungen der Satzglieder */
+function laTokens(text){
+  var w = String(text).replace(/[.,;:!?„“"]/g, " ").trim().split(/\s+/).filter(Boolean), t = [];
+  for (var i = 0; i < w.length; i++){
+    var a = laNorm(w[i]), zwei = i + 1 < w.length ? a + " " + laNorm(w[i + 1]) : "";
+    var adv2 = LA_ADV.filter(function(x){ return x.la === zwei; })[0];
+    if (adv2){ t.push({roh: w[i] + " " + w[i + 1], adv: adv2}); i++; continue; }
+    if (/^(in|ad|cum)$/.test(a)) return {fehler: "Den Ausdruck „" + w[i] + (w[i + 1] ? " " + w[i + 1] : "") + "“ kenne ich nicht. Bekannt sind: " + LA_ADV.filter(function(x){ return / /.test(x.la); }).map(function(x){ return x.la; }).join(", ") + "."};
+    var adv = LA_ADV.filter(function(x){ return x.la === a; })[0];
+    if (adv){ t.push({roh: w[i], adv: adv}); continue; }
+    var vb = []; LA_VERBEN.forEach(function(v){ for (var p = 0; p < 6; p++) if (laVForm(v, p) === a) vb.push({v: v, p: p}); });
+    var nm = laBestimme(a, LA_SATZNOMEN);
+    if (!vb.length && !nm.length) return {fehler: "Das Wort „" + w[i] + "“ ist nicht im Wortschatz des Trainers."};
+    t.push({roh: w[i], vb: vb, nm: nm});
+  }
+  return {t: t};
+}
+function laAnalysen(t){
+  var erg = [], pi = [];
+  t.forEach(function(x, i){ if (x.vb && x.vb.length) pi.push(i); });
+  pi.forEach(function(ip){ t[ip].vb.forEach(function(V){
+    var rest = t.map(function(x, i){ return i; }).filter(function(i){ return i !== ip; });
+    function weiter(j, belegt, wahl){
+      if (j === rest.length){
+        var val = V.v.val, hatS = "S" in belegt;
+        if (/A/.test(val) !== ("AO" in belegt) || /D/.test(val) !== ("DO" in belegt)) return;
+        if (hatS && V.p !== 2 && V.p !== 5) return;
+        erg.push({ip: ip, V: V, wahl: wahl.slice()}); return; }
+      var i = rest[j], x = t[i];
+      if (x.adv){ wahl[i] = {rolle: "ADV", adv: x.adv}; weiter(j + 1, belegt, wahl); return; }
+      (x.nm || []).forEach(function(c){
+        var r = c.k === "N" ? "S" : c.k === "A" ? "AO" : c.k === "D" ? "DO" : null; if (!r || belegt[r] !== undefined) return;
+        if (r === "S" && (!c.w.bel || (c.n === 1) !== (V.p >= 3))) return;
+        if (r === "DO" && !c.w.bel) return;
+        if (r === "AO" && V.v.obj === "p" && !c.w.bel) return;
+        if (r === "AO" && V.v.obj === "s" && c.w.bel) return;
+        var b2 = {}; for (var q in belegt) b2[q] = belegt[q]; b2[r] = i; wahl[i] = {rolle: r, c: c}; weiter(j + 1, b2, wahl); });
+    }
+    weiter(0, {}, []);
+  }); });
+  return erg;
+}
+function laLies(text){
+  var r = laTokens(text); if (r.fehler) return r;
+  if (r.t.length < 1) return {fehler: "Bitte einen lateinischen Satz eingeben, z. B. „Dominus servum vocat.“"};
+  var a = laAnalysen(r.t);
+  if (!a.length) return {fehler: "Zu diesem Satz finde ich keine passende Bestimmung. Prüfe die Endungen: Passt das Subjekt zum Prädikat? Hat das Verb seine Objekte?"};
+  var s = {t: r.t, a: a[0], anzahl: a.length};
+  if (a.length > 1) s.hinweis = "Achtung: Dieser Satz ist mehrdeutig (" + a.length + " Möglichkeiten) – der Trainer zeigt eine davon. Erst der Zusammenhang entscheidet.";
+  return s;
+}
+function laRolle(s, i){ return i === s.a.ip ? "P" : s.a.wahl[i].rolle; }
+function laGross(x){ return x.charAt(0).toUpperCase() + x.slice(1); }
+function laSatzBild(s, bis){   /* bis: welche Rollen schon markiert sind */
+  return '<div style="font-size:1.25rem;line-height:2.2">' + s.t.map(function(x, i){ var r = laRolle(s, i), roh = i === 0 ? laGross(x.roh) : x.roh;
+    return bis.indexOf(r) >= 0 ? marke(roh, LA_ROLLE[r][0], LA_ROLLE[r][1]) : '<span class="marke"><span>' + roh + '</span><small>&nbsp;</small></span>'; }).join(" ") + "." + '</div>'; }
+function laIdx(s, r){ var o = []; s.t.forEach(function(x, i){ if (laRolle(s, i) === r) o.push(i); }); return o; }
+function laDeutsch(s){
+  var V = s.a.V, pers = V.p, iS = laIdx(s, "S")[0], iA = laIdx(s, "AO")[0], iD = laIdx(s, "DO")[0];
+  var dtN = function(i, f){ var c = s.a.wahl[i].c; return c.w.dt[c.n][f]; };
+  var subj = iS !== undefined ? dtN(iS, 0) : LA_PERS_DE[pers];
+  var adv = function(art){ return laIdx(s, "ADV").map(function(i){ return s.a.wahl[i].adv; }).filter(function(a){ return a.art === art; }).map(function(a){ return a.de; }); };
+  var teile = [subj, V.v.de[pers]].concat(adv("z"), iD !== undefined ? [dtN(iD, 2)] : [], iA !== undefined ? [dtN(iA, 1)] : [], adv("m"), adv("o"), adv("r"));
+  return laGross(teile.join(" ")) + ".";
+}
+function laSchritte(s){
+  var V = s.a.V, iS = laIdx(s, "S"), iA = laIdx(s, "AO"), iD = laIdx(s, "DO"), iV = laIdx(s, "ADV"), P = s.t[s.a.ip].roh;
+  var andere = function(i, k){ var o = s.t[i].nm.filter(function(c){ return c.k !== k.k || c.n !== k.n || c.w !== k.w; }); return o.length ? " (Die Form könnte auch " + o.map(laKurz).join(" oder ") + " sein – das passt hier nicht.)" : ""; };
+  var st = [{erkl: "Lies den ganzen Satz. Gesucht sind die Satzglieder.", bild: laSatzBild(s, [])},
+    {erkl: "Suche das <b>Prädikat</b>: das Verb mit Personalendung. „" + P + "“: Endung " + LA_PERS_END[V.p] + " → " + LA_PERS_NAME[V.p] + " (" + LA_PERS_DE[V.p] + ").", bild: laSatzBild(s, ["P"]), zeile: marke(P, "Präd.", 2) + " = " + V.v.de[V.p] + " <small>(" + V.v.inf + ")</small>"}];
+  if (iS.length){ var c = s.a.wahl[iS[0]].c;
+    st.push({erkl: "Suche das <b>Subjekt</b> (wer oder was?): ein Nominativ, der zum Prädikat passt. „" + s.t[iS[0]].roh + "“ ist " + laKurz(c) + " – " + laNum(c.n) + " wie das Prädikat." + andere(iS[0], c), bild: laSatzBild(s, ["P", "S"]), zeile: marke(s.t[iS[0]].roh, "Subj.", 1) + " = " + c.w.dt[c.n][0]}); }
+  else st.push({erkl: "Suche das <b>Subjekt</b> (wer oder was?): Hier steht kein passender Nominativ. Das Subjekt steckt in der Endung " + LA_PERS_END[V.p] + " des Prädikats → „" + LA_PERS_DE[V.p] + "“.", bild: laSatzBild(s, ["P"]), zeile: "Subjekt im Prädikat: " + LA_PERS_DE[V.p]});
+  if (iA.length || iD.length){
+    var txt = [], zl = [];
+    iD.forEach(function(i){ var c = s.a.wahl[i].c; txt.push("„" + s.t[i].roh + "“ ist " + laKurz(c) + " → <b>Dativobjekt</b> (wem?)." + andere(i, c)); zl.push(marke(s.t[i].roh, "Dat-Obj.", 4) + " = " + c.w.dt[c.n][2]); });
+    iA.forEach(function(i){ var c = s.a.wahl[i].c; txt.push("„" + s.t[i].roh + "“ ist " + laKurz(c) + " → <b>Akkusativobjekt</b> (wen oder was?)." + andere(i, c)); zl.push(marke(s.t[i].roh, "Akk-Obj.", 3) + " = " + c.w.dt[c.n][1]); });
+    st.push({erkl: "Suche die <b>Objekte</b>: „" + V.v.inf + "“ braucht " + {A: "ein Akkusativobjekt", D: "ein Dativobjekt", DA: "ein Dativ- und ein Akkusativobjekt"}[V.v.val] + ". " + txt.join(" "), bild: laSatzBild(s, ["P", "S", "DO", "AO"]), zeile: zl.join(" &nbsp; ")});
+  } else st.push({erkl: "Suche die <b>Objekte</b>: „" + V.v.inf + "“ braucht kein Objekt.", bild: laSatzBild(s, ["P", "S"])});
+  if (iV.length) st.push({erkl: "Der Rest sind <b>Adverbialien</b>: " + iV.map(function(i){ var a = s.a.wahl[i].adv; return "„" + s.t[i].roh + "“ (" + a.erkl + ")"; }).join("; ") + ".", bild: laSatzBild(s, ["P", "S", "DO", "AO", "ADV"]),
+    zeile: iV.map(function(i){ return marke(s.t[i].roh, "Adv.", 5) + " = " + s.a.wahl[i].adv.de; }).join(" &nbsp; ")});
+  st.push({erkl: "Übersetze in der deutschen Reihenfolge: Subjekt – Prädikat – " + (iV.length || iA.length || iD.length ? "dann die übrigen Satzglieder." : "fertig."), zeile: "<b>" + laDeutsch(s) + "</b>"});
+  return st;
+}
+/* Kontrolle: Satz noch einmal lesen – genau eine Bestimmung, Kongruenz Subjekt/Prädikat, Valenz erfüllt, jedes Wort hat eine Rolle */
+function laKontrolle(s){
+  if (!s || s.fehler || s.anzahl !== 1) return false;
+  var V = s.a.V, iS = laIdx(s, "S"), ok = true;
+  if (iS.length){ var c = s.a.wahl[iS[0]].c; ok = c.k === "N" && (c.n === 1) === (V.p === 5) && (V.p === 2 || V.p === 5); }
+  ok = ok && (/A/.test(V.v.val) ? laIdx(s, "AO").length === 1 : !laIdx(s, "AO").length) && (/D/.test(V.v.val) ? laIdx(s, "DO").length === 1 : !laIdx(s, "DO").length);
+  ok = ok && s.t.every(function(x, i){ return i === s.a.ip || (s.a.wahl[i] && s.a.wahl[i].rolle); });
+  ok = ok && laVForm(V.v, V.p) === laNorm(s.t[s.a.ip].roh);
+  return ok && laMusterOk();
+}
+/* Zufallssätze: Stufe b = 3. Person, Akkusativverben, Subjekt vorne; e = + Plural, Dativ, Ortsangaben, 1./2. Person; k = + 3. Deklination, freie Wortstellung */
+function laZufallSatz(stufe){
+  var st = stufe === "b" ? ["b"] : stufe === "e" ? ["b", "e"] : ["b", "e", "k"], n = 0, satz, s;
+  var nom = LA_SATZNOMEN.filter(function(w){ return st.indexOf(w.st) >= 0; }), verben = LA_VERBEN.filter(function(v){ return st.indexOf(v.st) >= 0; });
+  do { n++;
+    var V = zw(verben), p = stufe === "b" ? 2 : zw([2, 5, 2, 5, 0, 1, 3, 4]), num = p >= 3 ? 1 : 0, teile = [], sw = null;
+    var belebt = nom.filter(function(w){ return w.bel; });
+    if (p === 2 || p === 5){ sw = zw(belebt); teile.push({r: "S", f: laForm(sw, "N", num)}); }
+    if (/D/.test(V.val)){ var dw = zw(belebt.filter(function(w){ return w !== sw; })); teile.push({r: "DO", f: laForm(dw, "D", stufe === "b" ? 0 : zw([0, 1]))}); }
+    if (/A/.test(V.val)){ var pool = nom.filter(function(w){ return w !== sw && (V.obj === "x" || (V.obj === "p") === !!w.bel) && (!V.objL || V.objL.indexOf(w.lem) >= 0); }); var aw = zw(pool); teile.push({r: "AO", f: laForm(aw, "A", stufe === "b" ? 0 : zw([0, 1]))}); }
+    var advs = LA_ADV.filter(function(a){ return stufe === "b" ? a.art === "z" : V.val === "0" ? (a.art !== "r" || V.inf === "ambulare") : a.art === "z" || a.art === "o"; });
+    if (V.val === "0" || Math.random() < (stufe === "b" ? 0.5 : 0.7)) teile.splice(sw ? 1 : 0, 0, {r: "ADV", f: zw(advs).la});
+    var w = teile.map(function(x){ return x.f; }), verb = laVForm(V, p);
+    if (stufe === "k" && Math.random() < 0.5 && w.length > 1){ w = mischen(w); if (Math.random() < 0.3) w.splice(zz(0, w.length - 1), 0, verb); else w.push(verb); } else w.push(verb);
+    satz = laGross(w.join(" ")) + ".";
+    s = laLies(satz);
+  } while ((!s || s.fehler || s.anzahl !== 1 || !laKontrolle(s)) && n < 500);
+  if (n >= 500) satz = "Dominus servum vocat.";                        /* Notbremse: fester, geprüfter Satz */
+  return satz;
+}
+
+var LA_SAETZE = ["Dominus servum vocat.", "Puella amicae villam monstrat.", "Servum dominus saepe monet.", "Hodie amici in foro mercatorem exspectant.", "Senatori respondemus.", "Servi cum amicis in silva ambulant.", "Mater puellae donum dat."];
+var TRAINER = [
+  { id: "sg", titel: "Satzglieder Schritt für Schritt", art: "vorfuehrer",
+    eingabe: {platzhalter: "z. B. Dominus servum vocat.", beispiel: "Dominus servum vocat."},
+    parse: function(t){ return laLies(t); },
+    titelVon: function(s){ return "Bestimme die Satzglieder und übersetze."; },
+    schritte: laSchritte,
+    presets: LA_SAETZE.map(function(t, i){ return {gruppe: "Beispielsätze", label: "abcdefg".charAt(i) + ")", text: t}; }),
+    zufall: function(stufe){ return laZufallSatz(stufe); },
+    pruefe: function(s){ return laKontrolle(s); } },
+  { id: "sb", titel: "Satzglied-Blitz", art: "blitz",
+    erzeuge: function(stufe){ var satz = laZufallSatz(stufe), s = laLies(satz), i = zz(0, s.t.length - 1), r = laRolle(s, i), x = s.t[i], grund;
+      if (r === "P") grund = "Verb mit Personalendung " + LA_PERS_END[s.a.V.p] + " (" + LA_PERS_NAME[s.a.V.p] + ")";
+      else if (r === "ADV") grund = s.a.wahl[i].adv.erkl;
+      else grund = laKurz(s.a.wahl[i].c) + " – " + LA_FRAGE[s.a.wahl[i].c.k];
+      return {frage: "Bestimme das Satzglied des markierten Ausdrucks:<br><span style=\"font-weight:500\">" + s.t.map(function(y, j){ var roh = j === 0 ? laGross(y.roh) : y.roh; return j === i ? '<span class="hl">' + roh + '</span>' : roh; }).join(" ") + ".</span>",
+        loesung: "„" + x.roh + "“: <b>" + LA_ROLLE[r][2] + "</b> (" + grund + ")" + laSatzBild(s, ["P", "S", "DO", "AO", "ADV"]) + laDeutsch(s),
+        daten: {satz: satz, i: i, r: r}}; },
+    pruefe: function(d){ var s = laLies(d.satz); return laKontrolle(s) && laRolle(s, d.i) === d.r; } }
+];
+</script>
+
+<script>
+var QUELLE = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;   // unveränderte Seite, als Vorlage zum Speichern
+/* ═════════ Hilfsfunktionen (nicht ändern) ═════════ */
+function zz(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }          // ganze Zufallszahl a … b
+function zw(liste){ return liste[Math.floor(Math.random() * liste.length)]; }      // zufälliges Element
+function mischen(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function ggT(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ var t = b; b = a % b; a = t; } return a; }
+function nf(n){ /* Zahl für die Anzeige: Minuszeichen −, Tausender mit schmalem Leerzeichen, Dezimalkomma */
+  var neg = n < 0, s = String(Math.abs(n)).split("."), g = s[0], o = "";
+  while (g.length > 3){ o = " " + g.slice(-3) + o; g = g.slice(0, -3); }
+  return (neg ? "−" : "") + g + o + (s[1] ? "," + s[1] : ""); }
+function bruch(z, n){ return '<span class="bruch"><span>' + z + '</span><span>' + n + '</span></span>'; }
+function v(name){ return '<span class="v">' + name + '</span>'; }                   // Variable kursiv
+function erg(x){ return '<span class="erg">' + x + '</span>'; }                      // Ergebnis doppelt unterstrichen
+function zahl(text){ /* Schülereingabe → Zahl (akzeptiert − und -, Komma, Leerzeichen); sonst null */
+  var s = String(text).replace(/[\s ]/g, "").replace(/[−–]/g, "-").replace(",", ".");
+  return /^-?\d+(\.\d+)?$/.test(s) ? parseFloat(s) : null; }
+
+function marke(text, etikett, nr){ return '<span class="marke m' + (nr || 1) + '"><span>' + text + '</span><small>' + (etikett || "") + '</small></span>'; }   // Wort markieren mit Etikett (Sprachfächer)
+function tabelle(kopf, zeilen){ return '<table class="tabelle"><tr>' + kopf.map(function(k){ return '<th>' + k + '</th>'; }).join("") + '</tr>' + zeilen.map(function(z){ return '<tr>' + z.map(function(c){ return /^\*/.test(c) ? '<td class="hl">' + c.slice(1) + '</td>' : '<td>' + c + '</td>'; }).join("") + '</tr>'; }).join("") + '</table>'; }   // kleine Tabelle; Zelle mit * am Anfang wird markiert
+
+/* ═════════ Motor (nicht ändern) ═════════ */
+function starte(){
+  var STUFEN = [["b", "Basis"], ["e", "Erweitert"], ["k", "Knobeln"]], zustand = {}, aktiv = null;
+  var main = document.getElementById("main"), reiter = document.getElementById("reiter");
+  function el(html){ var d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
+  function esc(s){ return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+  function stufenwahl(id){ return '<span class="seg" data-stufen="' + id + '">' + STUFEN.map(function(s, i){ return '<button data-s="' + s[0] + '"' + (i ? "" : ' class="an"') + '>' + s[1] + '</button>'; }).join("") + '</span>'; }
+
+  TRAINER.forEach(function(t, i){
+    var z = zustand[t.id] = {stufe: "b", aufgabe: null, i: 0, schritte: []};
+    reiter.appendChild(el('<button data-ziel="' + t.id + '">' + esc(t.titel) + '</button>'));
+    var sek;
+    if (t.art === "vorfuehrer"){
+      var gruppen = {}; (t.presets || []).forEach(function(p){ (gruppen[p.gruppe] = gruppen[p.gruppe] || []).push(p); });
+      sek = el('<section class="trainer" id="' + t.id + '"><div class="karte"><h2>' + esc(t.titel) + '</h2>' +
+        '<div class="zeile"><input class="eingabe" placeholder="' + esc(t.eingabe.platzhalter) + '" value="' + esc(t.eingabe.beispiel) + '">' +
+        '<button class="primaer" data-a="start">Start</button><button data-a="weiter">Nächster Schritt ▸</button><button data-a="zurueck">◂</button><button data-a="alle">Alles zeigen</button>' +
+        (t.zufall ? stufenwahl(t.id) + '<button data-a="zufall">🎲 Zufall</button>' : "") + '</div>' +
+        Object.keys(gruppen).map(function(g){ return '<div class="zeile"><span class="lbl">' + esc(g) + ':</span>' + gruppen[g].map(function(p){ return '<button class="preset" data-t="' + esc(p.text) + '">' + esc(p.label) + '</button>'; }).join("") + '</div>'; }).join("") +
+        '<div class="buehne"><div><div class="aufgabe"></div><div class="bild"></div><div class="tafelzeilen"></div></div><ol class="erkl"></ol></div><div class="info"></div></div></section>');
+    } else {
+      sek = el('<section class="trainer" id="' + t.id + '"><div class="karte"><h2>' + esc(t.titel) + '</h2>' +
+        '<div class="zeile">' + stufenwahl(t.id) + '<button class="primaer" data-a="neu">Neue Aufgabe</button><button data-a="auf">Aufdecken</button><button data-a="zeigen" hidden>Im Vorführer zeigen ▸</button></div>' +
+        '<div class="frage">Klick auf „Neue Aufgabe“.</div><div class="loesung"></div></div></section>');
+    }
+    main.appendChild(sek);
+    sek.addEventListener("click", function(e){ var b = e.target.closest("button"); if (!b) return;
+      if (b.parentNode.hasAttribute("data-stufen")){ z.stufe = b.getAttribute("data-s"); b.parentNode.querySelectorAll("button").forEach(function(x){ x.classList.toggle("an", x === b); }); return; }
+      if (b.classList.contains("preset")){ sek.querySelector(".eingabe").value = b.getAttribute("data-t"); start(t); return; }
+      var a = b.getAttribute("data-a"); if (a) aktion(t, a); });
+    if (t.art === "vorfuehrer") sek.querySelector(".eingabe").addEventListener("keydown", function(e){ if (e.key === "Enter") start(t); });
+  });
+
+  function zeige(id){ aktiv = TRAINER.filter(function(t){ return t.id === id; })[0] || TRAINER[0];
+    main.querySelectorAll("section.trainer").forEach(function(s){ s.classList.toggle("aktiv", s.id === aktiv.id); });
+    reiter.querySelectorAll("button").forEach(function(b){ b.classList.toggle("an", b.getAttribute("data-ziel") === aktiv.id); }); }
+  reiter.addEventListener("click", function(e){ var b = e.target.closest("button[data-ziel]"); if (b) zeige(b.getAttribute("data-ziel")); });
+
+  function start(t){ var sek = document.getElementById(t.id), z = zustand[t.id], info = sek.querySelector(".info");
+    var a; try { a = t.parse(sek.querySelector(".eingabe").value); } catch (err){ a = {fehler: "Das kann ich nicht lesen."}; }
+    if (!a || a.fehler){ info.textContent = (a && a.fehler) || "Das kann ich nicht lesen."; info.classList.add("fehler"); return; }
+    info.classList.remove("fehler"); info.textContent = a.hinweis || "Mit „Nächster Schritt ▸“ (oder →) geht es weiter.";
+    z.aufgabe = a; z.schritte = t.schritte(a); z.i = 0; male(t); }
+  function male(t){ var sek = document.getElementById(t.id), z = zustand[t.id]; if (!z.aufgabe) return;
+    var s = z.schritte.slice(0, z.i + 1), bild = "";
+    s.forEach(function(x){ if (x.bild != null) bild = x.bild; });
+    sek.querySelector(".aufgabe").innerHTML = t.titelVon ? t.titelVon(z.aufgabe) : "";
+    sek.querySelector(".bild").innerHTML = bild;
+    sek.querySelector(".tafelzeilen").innerHTML = s.filter(function(x){ return x.zeile; }).map(function(x){ return "<div>" + x.zeile + "</div>"; }).join("");
+    sek.querySelector(".erkl").innerHTML = s.map(function(x){ return "<li>" + x.erkl + "</li>"; }).join(""); }
+  function aktion(t, a){ var z = zustand[t.id], sek = document.getElementById(t.id);
+    if (t.art === "vorfuehrer"){
+      if (a === "start") start(t);
+      else if (a === "weiter" && z.aufgabe && z.i < z.schritte.length - 1){ z.i++; male(t); }
+      else if (a === "zurueck" && z.aufgabe && z.i > 0){ z.i--; male(t); }
+      else if (a === "alle" && z.aufgabe){ z.i = z.schritte.length - 1; male(t); }
+      else if ((a === "zufall" || a === "neu") && t.zufall){ sek.querySelector(".eingabe").value = t.zufall(z.stufe); start(t); }
+    } else {
+      if (a === "neu"){ z.aufgabe = t.erzeuge(z.stufe); sek.querySelector(".frage").innerHTML = z.aufgabe.frage; sek.querySelector(".loesung").innerHTML = "";
+        sek.querySelector('[data-a="zeigen"]').hidden = !z.aufgabe.vorfuehren; }
+      else if (a === "auf" && z.aufgabe) sek.querySelector(".loesung").innerHTML = z.aufgabe.loesung;
+      else if (a === "zeigen" && z.aufgabe && z.aufgabe.vorfuehren){ var ziel = TRAINER.filter(function(x){ return x.id === z.aufgabe.vorfuehren.trainer; })[0];
+        if (ziel){ zeige(ziel.id); document.getElementById(ziel.id).querySelector(".eingabe").value = z.aufgabe.vorfuehren.text; start(ziel); window.scrollTo({top: 0, behavior: "smooth"}); } }
+    } }
+
+  /* Kopfleiste und Tasten */
+  var fs = 22; function schrift(d){ fs = Math.max(14, Math.min(40, fs + d)); document.documentElement.style.setProperty("--fs", fs + "px"); }
+  document.getElementById("bKlein").onclick = function(){ schrift(-2); }; document.getElementById("bGross").onclick = function(){ schrift(2); };
+  function tafel(){ document.body.classList.toggle("tafel"); document.getElementById("bTafel").classList.toggle("an"); }
+  function voll(){ if (!document.fullscreenElement){ var r = document.documentElement; (r.requestFullscreen || r.webkitRequestFullscreen || function(){}).call(r); } else if (document.exitFullscreen) document.exitFullscreen(); }
+  document.getElementById("bTafel").onclick = tafel; document.getElementById("bVoll").onclick = voll;
+  document.addEventListener("keydown", function(e){
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key, t = aktiv; if (!t) return;
+    if (k === "ArrowRight" || k === " "){ e.preventDefault(); var offen = t.art === "blitz" && zustand[t.id].aufgabe && document.getElementById(t.id).querySelector(".loesung").innerHTML !== "";
+      aktion(t, t.art === "vorfuehrer" ? "weiter" : (zustand[t.id].aufgabe && !offen ? "auf" : "neu")); }
+    else if (k === "ArrowLeft") aktion(t, "zurueck");
+    else if (k === "a" || k === "A") aktion(t, t.art === "vorfuehrer" ? "alle" : "auf");
+    else if (k === "n" || k === "N") aktion(t, t.art === "vorfuehrer" ? "zufall" : "neu");
+    else if (k === "t" || k === "T") tafel(); else if (k === "f" || k === "F") voll();
+    else if (k === "+") schrift(2); else if (k === "-") schrift(-2);
+    else if (/^[1-9]$/.test(k) && TRAINER[+k - 1]) zeige(TRAINER[+k - 1].id); });
+
+  /* Selbsttest beim Laden: Presets lesbar, Zufallsaufgaben und Generatoren je Stufe 300-mal mit pruefe() nachgerechnet */
+  var fehler = [], n = 0;
+  TRAINER.forEach(function(t){
+    try {
+      if (t.art === "vorfuehrer"){
+        (t.presets || []).concat([{label: "Beispiel", text: t.eingabe.beispiel}]).forEach(function(p){ var a = t.parse(p.text); n++;
+          if (!a || a.fehler) fehler.push(t.titel + " – " + p.label + ": nicht lesbar"); else { t.schritte(a); if (t.pruefe && !t.pruefe(a)) fehler.push(t.titel + " – " + p.label + ": Prüfung falsch"); } });
+        if (t.zufall) STUFEN.forEach(function(s){ for (var i = 0; i < 300; i++){ var tx = t.zufall(s[0]), a = t.parse(tx); n++;
+          if (!a || a.fehler){ fehler.push(t.titel + " – Zufall " + s[1] + ": nicht lesbar: " + tx); break; } t.schritte(a); if (t.pruefe && !t.pruefe(a)){ fehler.push(t.titel + " – Zufall " + s[1] + ": " + tx); break; } } });
+      } else STUFEN.forEach(function(s){ for (var i = 0; i < 300; i++){ var g = t.erzeuge(s[0]); n++;
+        if (!g || !g.frage || !g.loesung || (t.pruefe && !t.pruefe(g.daten))){ fehler.push(t.titel + " – " + s[1] + ": " + String(g && g.frage).replace(/<[^>]+>/g, "")); break; } } });
+    } catch (err){ fehler.push(t.titel + ": Programmfehler – " + err.message); }
+  });
+  var st = document.getElementById("selbsttest");
+  if (fehler.length){ st.className = "fehler"; st.textContent = "⚠ Selbsttest: " + fehler.length + " Problem(e) – " + fehler.slice(0, 3).join(" | ") + " – bitte dem Assistenten melden."; }
+  else st.textContent = "Selbsttest ✓ " + n + " Aufgaben geprüft";
+  document.title = NAME + " – " + THEMA; document.querySelector("header h1").textContent = NAME + " – " + THEMA;
+  zeige(TRAINER[0].id);
+  TRAINER.forEach(function(t){ if (t.art === "vorfuehrer") start(t); });
+}
+
+/* ═════════ Baukasten: Code einlesen, starten, speichern ═════════ */
+(function(){
+  var codeTag = document.getElementById("trainer-code"), meldung = document.getElementById("meldung"), aktuellerCode = "";
+  function bereinigen(c){ return String(c).replace(/^\s*```[a-zA-Z]*\s*\n?/, "").replace(/\n?\s*```\s*$/, "").trim(); }
+  function laufen(code){
+    window.THEMA = undefined; window.TRAINER = undefined; window.NAME = undefined;
+    try { (0, eval)(code + "\n;window.THEMA = (typeof THEMA !== \"undefined\") ? THEMA : window.THEMA; window.TRAINER = (typeof TRAINER !== \"undefined\") ? TRAINER : window.TRAINER; window.NAME = (typeof NAME !== \"undefined\") ? NAME : window.NAME;"); } catch (err){ return "Der Code enthält einen Fehler: " + err.message + ". Bitte diese Meldung an den Assistenten schicken."; }
+    if (!Array.isArray(window.TRAINER) || !window.TRAINER.length) return "Im Code fehlt „var TRAINER = [ … ]“. Bitte den ganzen Code-Block kopieren.";
+    if (typeof window.THEMA !== "string") window.THEMA = "Übung";
+    if (typeof window.NAME !== "string" || !window.NAME) window.NAME = "Trainer";
+    try { starte(); } catch (err){ return "Der Trainer lässt sich nicht starten: " + err.message + ". Bitte diese Meldung an den Assistenten schicken."; }
+    return "";
+  }
+  function speichern(){
+    var sicher = aktuellerCode.replace(/<\/script/gi, "<\\/script");
+    var datei = QUELLE.replace(/<script type="text\/plain" id="trainer-code">[\s\S]*?<\/script>/, function(){ return '<script type="text/plain" id="trainer-code">\n' + sicher + '\n</' + 'script>'; });
+    var name = (String(window.NAME || "Trainer") + "_" + String(window.THEMA || "Thema")).replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/Ä/g, "Ae").replace(/Ö/g, "Oe").replace(/Ü/g, "Ue").replace(/ß/g, "ss").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "") + ".html";
+    var url = URL.createObjectURL(new Blob([datei], {type: "text/html"})), a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+  document.getElementById("bSpeichern").onclick = speichern;
+  var gespeichert = codeTag.textContent.trim();
+  if (gespeichert){
+    aktuellerCode = gespeichert; var f = laufen(gespeichert);
+    if (f){ document.getElementById("main").innerHTML = '<div class="karte"><b>' + f + '</b></div>'; }
+    document.getElementById("tastenhilfe").hidden = false;
+  } else {
+    document.getElementById("baukasten").hidden = false;
+    document.querySelector("header h1").textContent = "Trainer – Baukasten";
+    document.getElementById("bStart").onclick = function(){
+      var code = bereinigen(document.getElementById("codeFeld").value);
+      if (!code){ meldung.textContent = "Bitte zuerst den Code einfügen."; meldung.className = "meldung fehler"; return; }
+      var f = laufen(code);
+      if (f){ meldung.textContent = f; meldung.className = "meldung fehler"; return; }
+      aktuellerCode = code; document.getElementById("baukasten").hidden = true; document.getElementById("tastenhilfe").hidden = false;
+      document.getElementById("bSpeichern").style.display = "inline-block";
+    };
+  }
+})();
+</script>
+</body>
+</html>
