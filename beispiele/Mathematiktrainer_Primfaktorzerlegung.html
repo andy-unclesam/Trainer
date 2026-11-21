@@ -64,6 +64,11 @@ body.tafel .m1{color:#93c5fd} body.tafel .m2{color:#fca5a5} body.tafel .m3{color
 .tabelle th,.tabelle td{border:1px solid var(--rand);padding:.15rem .5rem;text-align:left}
 .tabelle th{background:var(--soft);font-size:.75rem}
 .tabelle td.hl{font-weight:800}
+.werkbank{margin:.3rem 0}
+.werkbank svg{max-width:100%;height:auto}
+.werkbank [data-w]{cursor:pointer}
+.werkbank [data-w]:focus{outline:3px solid var(--blau);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
 @keyframes auf{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 #baukasten{max-width:60rem;margin:1rem auto;padding:0 .8rem}
@@ -115,7 +120,7 @@ function pfBlaetter(x, bis, acc){ var offen = x.k && bis.indexOf(x) >= 0; if (of
 function pfAnz(x, bis){ return x.k && bis.indexOf(x) >= 0 ? pfAnz(x.k[0], bis) + pfAnz(x.k[1], bis) : 1; }
 function pfTiefe(x, bis){ return x.k && bis.indexOf(x) >= 0 ? 1 + Math.max(pfTiefe(x.k[0], bis), pfTiefe(x.k[1], bis)) : 0; }
 function pfSvg(b, bis){   /* bis: Liste der schon zerlegten Knoten */
-  var T = Math.max(1, pfTiefe(b.w, bis)), dy = 64, W = Math.max(260, pfAnz(b.w, bis) * 78), H = 44 + T * dy, r = 21, s = "";
+  var T = Math.max(1, pfTiefe(b.w, bis)), dy = 64, W = Math.max(260, pfAnz(b.w, bis) * 78), H = 56 + T * dy, r = 21, s = "";
   function mal(x, cx, cy, breite){
     if (x.k && bis.indexOf(x) >= 0){ var a1 = pfAnz(x.k[0], bis), a2 = pfAnz(x.k[1], bis), b1 = breite * a1 / (a1 + a2), b2 = breite - b1;
       var x1 = cx - breite / 2 + b1 / 2, x2 = cx + breite / 2 - b2 / 2, y2 = cy + dy;
@@ -143,7 +148,71 @@ function pfZufall(stufe){
   if (z >= 500) n = stufe === "b" ? 84 : stufe === "e" ? 360 : 1001;          /* Notbremse: feste, geprüfte Ersatzzahlen */
   return n;
 }
+/* ═══ Werkzeug: Faktorbaum selbst bauen – Zustand {b: Baum, sel: Pfad der gewählten Zahl, pot, start} (nur Daten, JSON) ═══ */
+var PF_STARTS = {};                                       /* bisherige Starts je Zahl, für den Vergleich „gleiche Primfaktoren“ */
+function wzKnoten(w, pfad){ var x = w.b; for (var i = 0; i < pfad.length; i++) x = x.k[+pfad.charAt(i)]; return x; }
+function wzOffen(x, pfad, acc){ if (x.k){ wzOffen(x.k[0], pfad + "0", acc); wzOffen(x.k[1], pfad + "1", acc); } else if (!pfPrim(x.v)) acc.push(pfad); return acc; }
+function wzBlaetter(x, acc){ if (x.k){ wzBlaetter(x.k[0], acc); wzBlaetter(x.k[1], acc); } else acc.push(x.v); return acc; }
+function wzAnz(x){ return x.k ? wzAnz(x.k[0]) + wzAnz(x.k[1]) : 1; }
+function wzTiefe(x){ return x.k ? 1 + Math.max(wzTiefe(x.k[0]), wzTiefe(x.k[1])) : 0; }
+function wzSvg(w){
+  var dy = 66, W = Math.max(280, wzAnz(w.b) * 82), H = 62 + Math.max(1, wzTiefe(w.b)) * dy, r = 23, s = "";
+  function mal(x, pfad, cx, cy, br){
+    if (x.k){ var a1 = wzAnz(x.k[0]), a2 = wzAnz(x.k[1]), b1 = br * a1 / (a1 + a2), b2 = br - b1, x1 = cx - br / 2 + b1 / 2, x2 = cx + br / 2 - b2 / 2, y2 = cy + dy;
+      s += '<line x1="' + cx + '" y1="' + (cy + r) + '" x2="' + x1 + '" y2="' + (y2 - r) + '" stroke="currentColor" stroke-width="2"/><line x1="' + cx + '" y1="' + (cy + r) + '" x2="' + x2 + '" y2="' + (y2 - r) + '" stroke="currentColor" stroke-width="2"/>';
+      mal(x.k[0], pfad + "0", x1, y2, b1); mal(x.k[1], pfad + "1", x2, y2, b2); }
+    var prim = pfPrim(x.v), offen = !x.k && !prim, gew = offen && w.sel === pfad;
+    var kreis = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" style="fill:' + (gew ? "var(--gelb)" : "var(--karte)") + ';stroke:' + (prim ? "var(--gruen)" : offen ? "var(--blau)" : "currentColor") + '" stroke-width="' + (prim || gew ? 3.5 : 2.5) + '"' + (offen && !gew ? ' stroke-dasharray="5 4"' : "") + '/>' +
+      '<text x="' + cx + '" y="' + (cy + 6) + '" text-anchor="middle" font-size="' + (x.v >= 1000 ? 13 : 17) + '" font-weight="700" style="fill:' + (prim ? "var(--gruen)" : "currentColor") + '">' + nf(x.v) + '</text>';
+    s += offen ? '<g data-w="n:' + pfad + '" tabindex="0" role="button" aria-label="' + x.v + ' zerlegen">' + kreis + '</g>' : kreis;
+  }
+  mal(w.b, "", W / 2, 28, W - 20);
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="max-width:' + Math.min(44, W / 15) + 'rem" font-family="system-ui,sans-serif">' + s + '</svg>';
+}
+function wzSplit(w, pfad, a){ var x = wzKnoten(w, pfad); x.k = [{v: a, k: null}, {v: x.v / a, k: null}]; if (pfad === "") w.start = nf(a) + " · " + nf(x.v / a); }
 var TRAINER = [
+  { id: "w1", titel: "Faktorbaum bauen", art: "werkzeug",
+    eingabe: {platzhalter: "z. B. 360", beispiel: "210"},
+    parse: function(t){ var a = pfLies(t);
+      if (!a || a.start) return {fehler: "Bitte nur eine Zahl eingeben, z. B. 360 – den Start wählst du dann im Baum."};
+      if (a.n < 2) return {fehler: "Jede natürliche Zahl ab 2 lässt sich zerlegen – bitte eine Zahl ab 2 eingeben."};
+      if (a.n > 99999) return {fehler: "Bitte höchstens fünfstellige Zahlen."};
+      return {n: a.n}; },
+    titelVon: function(a){ return "Zerlege " + nf(a.n) + " mit dem Faktorbaum."; },
+    anfang: function(a){ return {b: {v: a.n, k: null}, sel: pfPrim(a.n) ? null : "", pot: false, start: null}; },
+    zeichne: function(a, w){ var o = wzSvg(w), off = wzOffen(w.b, "", []);
+      if (w.sel !== null){ var x = wzKnoten(w, w.sel);
+        o += '<div class="zeile"><span class="lbl">' + nf(x.v) + ' zerlegen in:</span>' + pfPaare(x.v).map(function(p){ return '<button class="preset" data-w="z:' + p[0] + '">' + nf(p[0]) + " · " + nf(p[1]) + '</button>'; }).join("") + '</div>'; }
+      if (!off.length && w.b.k){ var bl = wzBlaetter(w.b, []).sort(function(p, q){ return p - q; }), mehr = bl.length !== bl.filter(function(p, i){ return bl.indexOf(p) === i; }).length;
+        o += '<div style="font-size:1.25rem;margin-top:.4rem"><b>' + nf(a.n) + " = " + pfProdukt(bl) + '</b>' + (mehr ? (w.pot ? " = " + erg(pfPotenz(bl)) : ' &nbsp;<button data-w="pot">Potenzschreibweise</button>') : "") + '</div>' +
+          '<div style="font-size:.9rem;margin-top:.2rem">Probe: ' + pfProdukt(bl) + " = " + nf(bl.reduce(function(p, q){ return p * q; }, 1)) + ' ✓</div>';
+        var st = PF_STARTS[a.n] || [];
+        if (st.length > 1) o += '<div style="font-size:.9rem;margin-top:.3rem">Deine Starts: ' + st.join(" ; ") + ' – jedes Mal dieselben Primfaktoren.</div>'; }
+      return o; },
+    aktion: function(a, w, wert){ var t = wert.split(":");
+      if (t[0] === "n"){ w.sel = w.sel === t[1] ? null : t[1]; return true; }
+      if (t[0] === "z" && w.sel !== null){ var x = wzKnoten(w, w.sel), f = +t[1]; if (x.k || x.v % f !== 0 || f < 2 || f === x.v) return false;
+        wzSplit(w, w.sel, f); var off = wzOffen(w.b, "", []); w.sel = off.length === 1 ? off[0] : null;
+        if (!off.length && w.start){ var l = PF_STARTS[a.n] = PF_STARTS[a.n] || []; if (l.indexOf(w.start) < 0) l.push(w.start); }
+        return true; }
+      if (t[0] === "pot"){ w.pot = true; return true; }
+      return false; },
+    status: function(a, w){ var off = wzOffen(w.b, "", []);
+      if (!w.b.k && pfPrim(a.n)) return nf(a.n) + " ist eine <b>Primzahl</b> – sie lässt sich nicht weiter zerlegen.";
+      if (w.sel !== null) return "Wähle ein Produkt für " + nf(wzKnoten(w, w.sel).v) + " – egal welches.";
+      if (off.length) return "Tippe auf eine Zahl mit gestricheltem blauem Rand und zerlege sie weiter. Noch " + off.length + (off.length > 1 ? " Zahlen" : " Zahl") + " offen.";
+      return "Fertig: An allen Enden stehen Primzahlen (grün). Probiere „Neu beginnen“ mit einem anderen Start – die Primfaktoren bleiben dieselben."; },
+    presets: [{gruppe: "Tafelbild", label: "210", text: "210"}, {gruppe: "Faktorbaum", label: "12", text: "12"}, {gruppe: "Faktorbaum", label: "36", text: "36"}, {gruppe: "Faktorbaum", label: "84", text: "84"},
+      {gruppe: "Faktorbaum", label: "120", text: "120"}, {gruppe: "Faktorbaum", label: "225", text: "225"}, {gruppe: "Faktorbaum", label: "360", text: "360"}, {gruppe: "Faktorbaum", label: "1 001", text: "1 001"}],
+    zufall: function(stufe){ return String(pfZufall(stufe)); },
+    loesen: function(a, w){ wzOffen(w.b, "", []).forEach(function(pf){ (function rek(pfad){ var x = wzKnoten(w, pfad); if (pfPrim(x.v)) return; wzSplit(w, pfad, pfPaare(x.v).slice(-1)[0][0]); rek(pfad + "0"); rek(pfad + "1"); })(pf); }); w.sel = null; },
+    loesenText: "Automatisch fertig zerlegen",
+    pruefe: function(a, w){ var soll = pfTeil(a.n).join(), bl = wzBlaetter(w.b, []).sort(function(p, q){ return p - q; });
+      if (!bl.every(pfPrim) || bl.join() !== soll) return false;
+      for (var v = 0; v < 3; v++){ var t = {b: {v: a.n, k: null}}, q = [""];             /* jeder andere Weg durch den Baum: dieselben Primfaktoren */
+        while (q.length){ var pf = q.shift(), x = wzKnoten(t, pf); if (pfPrim(x.v)) continue; wzSplit(t, pf, zw(pfPaare(x.v))[0]); q.push(pf + "0", pf + "1"); }
+        if (wzBlaetter(t.b, []).sort(function(p, q){ return p - q; }).join() !== soll) return false; }
+      return true; } },
   { id: "v1", titel: "Faktorbaum Schritt für Schritt", art: "vorfuehrer",
     eingabe: {platzhalter: "z. B. 360 oder 210 = 6 · 35", beispiel: "210"},
     parse: function(t){ var a = pfLies(t);
@@ -223,17 +292,27 @@ function starte(){
         (t.zufall ? stufenwahl(t.id) + '<button data-a="zufall">🎲 Zufall</button>' : "") + '</div>' +
         Object.keys(gruppen).map(function(g){ return '<div class="zeile"><span class="lbl">' + esc(g) + ':</span>' + gruppen[g].map(function(p){ return '<button class="preset" data-t="' + esc(p.text) + '">' + esc(p.label) + '</button>'; }).join("") + '</div>'; }).join("") +
         '<div class="buehne"><div><div class="aufgabe"></div><div class="bild"></div><div class="tafelzeilen"></div></div><ol class="erkl"></ol></div><div class="info"></div></div></section>');
+    } else if (t.art === "werkzeug"){
+      var gw = {}; (t.presets || []).forEach(function(p){ (gw[p.gruppe] = gw[p.gruppe] || []).push(p); });
+      sek = el('<section class="trainer" id="' + t.id + '"><div class="karte"><h2>' + esc(t.titel) + '</h2>' +
+        '<div class="zeile"><input class="eingabe" placeholder="' + esc(t.eingabe.platzhalter) + '" value="' + esc(t.eingabe.beispiel) + '">' +
+        '<button class="primaer" data-a="start">Start</button><button data-a="zurueck">◂ Zurück</button><button data-a="neustart">Neu beginnen</button>' +
+        (t.loesen ? '<button data-a="loesen">' + esc(t.loesenText || "Fertig zeigen") + '</button>' : "") +
+        (t.zufall ? stufenwahl(t.id) + '<button data-a="zufall">🎲 Zufall</button>' : "") + '</div>' +
+        Object.keys(gw).map(function(g){ return '<div class="zeile"><span class="lbl">' + esc(g) + ':</span>' + gw[g].map(function(p){ return '<button class="preset" data-t="' + esc(p.text) + '">' + esc(p.label) + '</button>'; }).join("") + '</div>'; }).join("") +
+        '<div class="aufgabe"></div><div class="werkbank"></div><div class="info"></div></div></section>');
     } else {
       sek = el('<section class="trainer" id="' + t.id + '"><div class="karte"><h2>' + esc(t.titel) + '</h2>' +
         '<div class="zeile">' + stufenwahl(t.id) + '<button class="primaer" data-a="neu">Neue Aufgabe</button><button data-a="auf">Aufdecken</button><button data-a="zeigen" hidden>Im Vorführer zeigen ▸</button></div>' +
         '<div class="frage">Klick auf „Neue Aufgabe“.</div><div class="loesung"></div></div></section>');
     }
     main.appendChild(sek);
-    sek.addEventListener("click", function(e){ var b = e.target.closest("button"); if (!b) return;
+    sek.addEventListener("click", function(e){ var wz = e.target.closest("[data-w]"); if (wz && t.art === "werkzeug"){ werk(t, wz.getAttribute("data-w")); return; }
+      var b = e.target.closest("button"); if (!b) return;
       if (b.parentNode.hasAttribute("data-stufen")){ z.stufe = b.getAttribute("data-s"); b.parentNode.querySelectorAll("button").forEach(function(x){ x.classList.toggle("an", x === b); }); return; }
       if (b.classList.contains("preset")){ sek.querySelector(".eingabe").value = b.getAttribute("data-t"); start(t); return; }
       var a = b.getAttribute("data-a"); if (a) aktion(t, a); });
-    if (t.art === "vorfuehrer") sek.querySelector(".eingabe").addEventListener("keydown", function(e){ if (e.key === "Enter") start(t); });
+    if (t.art !== "blitz") sek.querySelector(".eingabe").addEventListener("keydown", function(e){ if (e.key === "Enter") start(t); });
   });
 
   function zeige(id){ aktiv = TRAINER.filter(function(t){ return t.id === id; })[0] || TRAINER[0];
@@ -244,7 +323,9 @@ function starte(){
   function start(t){ var sek = document.getElementById(t.id), z = zustand[t.id], info = sek.querySelector(".info");
     var a; try { a = t.parse(sek.querySelector(".eingabe").value); } catch (err){ a = {fehler: "Das kann ich nicht lesen."}; }
     if (!a || a.fehler){ info.textContent = (a && a.fehler) || "Das kann ich nicht lesen."; info.classList.add("fehler"); return; }
-    info.classList.remove("fehler"); info.textContent = a.hinweis || "Mit „Nächster Schritt ▸“ (oder →) geht es weiter.";
+    info.classList.remove("fehler");
+    if (t.art === "werkzeug"){ z.aufgabe = a; z.w = t.anfang ? t.anfang(a) : {}; z.verlauf = []; z.hinweis = a.hinweis || ""; wMale(t); return; }
+    info.textContent = a.hinweis || "Mit „Nächster Schritt ▸“ (oder →) geht es weiter.";
     z.aufgabe = a; z.schritte = t.schritte(a); z.i = 0; male(t); }
   function male(t){ var sek = document.getElementById(t.id), z = zustand[t.id]; if (!z.aufgabe) return;
     var s = z.schritte.slice(0, z.i + 1), bild = "";
@@ -253,8 +334,21 @@ function starte(){
     sek.querySelector(".bild").innerHTML = bild;
     sek.querySelector(".tafelzeilen").innerHTML = s.filter(function(x){ return x.zeile; }).map(function(x){ return "<div>" + x.zeile + "</div>"; }).join("");
     sek.querySelector(".erkl").innerHTML = s.map(function(x){ return "<li>" + x.erkl + "</li>"; }).join(""); }
+  function wMale(t){ var sek = document.getElementById(t.id), z = zustand[t.id]; if (!z.aufgabe) return;
+    sek.querySelector(".aufgabe").innerHTML = t.titelVon ? t.titelVon(z.aufgabe) : "";
+    sek.querySelector(".werkbank").innerHTML = t.zeichne(z.aufgabe, z.w);
+    sek.querySelector(".info").innerHTML = (t.status ? t.status(z.aufgabe, z.w) : "") || z.hinweis || "";
+    sek.querySelector('[data-a="zurueck"]').disabled = !z.verlauf.length; }
+  function werk(t, wert){ var z = zustand[t.id]; if (!z.aufgabe) return; var vor = JSON.stringify(z.w);
+    if (t.aktion(z.aufgabe, z.w, wert) === false) return; z.verlauf.push(vor); wMale(t); }
   function aktion(t, a){ var z = zustand[t.id], sek = document.getElementById(t.id);
-    if (t.art === "vorfuehrer"){
+    if (t.art === "werkzeug"){
+      if (a === "start") start(t);
+      else if (a === "zurueck" && z.aufgabe && z.verlauf.length){ z.w = JSON.parse(z.verlauf.pop()); wMale(t); }
+      else if (a === "neustart" && z.aufgabe){ z.w = t.anfang ? t.anfang(z.aufgabe) : {}; z.verlauf = []; wMale(t); }
+      else if (a === "loesen" && z.aufgabe && t.loesen){ z.verlauf.push(JSON.stringify(z.w)); t.loesen(z.aufgabe, z.w); wMale(t); }
+      else if ((a === "zufall" || a === "neu") && t.zufall){ sek.querySelector(".eingabe").value = t.zufall(z.stufe); start(t); }
+    } else if (t.art === "vorfuehrer"){
       if (a === "start") start(t);
       else if (a === "weiter" && z.aufgabe && z.i < z.schritte.length - 1){ z.i++; male(t); }
       else if (a === "zurueck" && z.aufgabe && z.i > 0){ z.i--; male(t); }
@@ -277,6 +371,14 @@ function starte(){
   document.addEventListener("keydown", function(e){
     if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
     var k = e.key, t = aktiv; if (!t) return;
+    if (t.art === "werkzeug"){
+      var wz = e.target.closest ? e.target.closest("[data-w]") : null;
+      if ((k === "Enter" || k === " ") && wz && wz.tagName !== "BUTTON"){ e.preventDefault(); werk(t, wz.getAttribute("data-w")); return; }
+      if (k === "ArrowLeft"){ aktion(t, "zurueck"); return; }
+      if (k === "n" || k === "N"){ aktion(t, "zufall"); return; }
+      if (k === "a" || k === "A"){ aktion(t, "loesen"); return; }
+      if (k === "ArrowRight" || k === " " || k === "Enter") return;
+    }
     if (k === "ArrowRight" || k === " "){ e.preventDefault(); var offen = t.art === "blitz" && zustand[t.id].aufgabe && document.getElementById(t.id).querySelector(".loesung").innerHTML !== "";
       aktion(t, t.art === "vorfuehrer" ? "weiter" : (zustand[t.id].aufgabe && !offen ? "auf" : "neu")); }
     else if (k === "ArrowLeft") aktion(t, "zurueck");
@@ -290,7 +392,14 @@ function starte(){
   var fehler = [], n = 0;
   TRAINER.forEach(function(t){
     try {
-      if (t.art === "vorfuehrer"){
+      if (t.art === "werkzeug"){
+        var wpr = function(tx, lab){ var a = t.parse(tx); n++;
+          if (!a || a.fehler){ fehler.push(t.titel + " – " + lab + ": nicht lesbar: " + tx); return false; }
+          var w = t.anfang ? t.anfang(a) : {}; t.zeichne(a, w); if (t.loesen){ t.loesen(a, w); t.zeichne(a, w); }
+          if (t.pruefe && !t.pruefe(a, w)){ fehler.push(t.titel + " – " + lab + ": Prüfung falsch"); return false; } return true; };
+        (t.presets || []).concat([{label: "Beispiel", text: t.eingabe.beispiel}]).forEach(function(p){ wpr(p.text, p.label); });
+        if (t.zufall) STUFEN.forEach(function(s){ for (var i = 0; i < 300; i++) if (!wpr(t.zufall(s[0]), "Zufall " + s[1])) break; });
+      } else if (t.art === "vorfuehrer"){
         (t.presets || []).concat([{label: "Beispiel", text: t.eingabe.beispiel}]).forEach(function(p){ var a = t.parse(p.text); n++;
           if (!a || a.fehler) fehler.push(t.titel + " – " + p.label + ": nicht lesbar"); else { t.schritte(a); if (t.pruefe && !t.pruefe(a)) fehler.push(t.titel + " – " + p.label + ": Prüfung falsch"); } });
         if (t.zufall) STUFEN.forEach(function(s){ for (var i = 0; i < 300; i++){ var tx = t.zufall(s[0]), a = t.parse(tx); n++;
@@ -304,7 +413,7 @@ function starte(){
   else st.textContent = "Selbsttest ✓ " + n + " Aufgaben geprüft";
   document.title = NAME + " – " + THEMA; document.querySelector("header h1").textContent = NAME + " – " + THEMA;
   zeige(TRAINER[0].id);
-  TRAINER.forEach(function(t){ if (t.art === "vorfuehrer") start(t); });
+  TRAINER.forEach(function(t){ if (t.art !== "blitz") start(t); });
 }
 
 /* ═════════ Baukasten: Code einlesen, starten, speichern ═════════ */

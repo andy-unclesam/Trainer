@@ -64,6 +64,11 @@ body.tafel .m1{color:#93c5fd} body.tafel .m2{color:#fca5a5} body.tafel .m3{color
 .tabelle th,.tabelle td{border:1px solid var(--rand);padding:.15rem .5rem;text-align:left}
 .tabelle th{background:var(--soft);font-size:.75rem}
 .tabelle td.hl{font-weight:800}
+.werkbank{margin:.3rem 0}
+.werkbank svg{max-width:100%;height:auto}
+.werkbank [data-w]{cursor:pointer}
+.werkbank [data-w]:focus{outline:3px solid var(--blau);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
 @keyframes auf{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 #baukasten{max-width:60rem;margin:1rem auto;padding:0 .8rem}
@@ -189,17 +194,27 @@ function starte(){
         (t.zufall ? stufenwahl(t.id) + '<button data-a="zufall">🎲 Zufall</button>' : "") + '</div>' +
         Object.keys(gruppen).map(function(g){ return '<div class="zeile"><span class="lbl">' + esc(g) + ':</span>' + gruppen[g].map(function(p){ return '<button class="preset" data-t="' + esc(p.text) + '">' + esc(p.label) + '</button>'; }).join("") + '</div>'; }).join("") +
         '<div class="buehne"><div><div class="aufgabe"></div><div class="bild"></div><div class="tafelzeilen"></div></div><ol class="erkl"></ol></div><div class="info"></div></div></section>');
+    } else if (t.art === "werkzeug"){
+      var gw = {}; (t.presets || []).forEach(function(p){ (gw[p.gruppe] = gw[p.gruppe] || []).push(p); });
+      sek = el('<section class="trainer" id="' + t.id + '"><div class="karte"><h2>' + esc(t.titel) + '</h2>' +
+        '<div class="zeile"><input class="eingabe" placeholder="' + esc(t.eingabe.platzhalter) + '" value="' + esc(t.eingabe.beispiel) + '">' +
+        '<button class="primaer" data-a="start">Start</button><button data-a="zurueck">◂ Zurück</button><button data-a="neustart">Neu beginnen</button>' +
+        (t.loesen ? '<button data-a="loesen">' + esc(t.loesenText || "Fertig zeigen") + '</button>' : "") +
+        (t.zufall ? stufenwahl(t.id) + '<button data-a="zufall">🎲 Zufall</button>' : "") + '</div>' +
+        Object.keys(gw).map(function(g){ return '<div class="zeile"><span class="lbl">' + esc(g) + ':</span>' + gw[g].map(function(p){ return '<button class="preset" data-t="' + esc(p.text) + '">' + esc(p.label) + '</button>'; }).join("") + '</div>'; }).join("") +
+        '<div class="aufgabe"></div><div class="werkbank"></div><div class="info"></div></div></section>');
     } else {
       sek = el('<section class="trainer" id="' + t.id + '"><div class="karte"><h2>' + esc(t.titel) + '</h2>' +
         '<div class="zeile">' + stufenwahl(t.id) + '<button class="primaer" data-a="neu">Neue Aufgabe</button><button data-a="auf">Aufdecken</button><button data-a="zeigen" hidden>Im Vorführer zeigen ▸</button></div>' +
         '<div class="frage">Klick auf „Neue Aufgabe“.</div><div class="loesung"></div></div></section>');
     }
     main.appendChild(sek);
-    sek.addEventListener("click", function(e){ var b = e.target.closest("button"); if (!b) return;
+    sek.addEventListener("click", function(e){ var wz = e.target.closest("[data-w]"); if (wz && t.art === "werkzeug"){ werk(t, wz.getAttribute("data-w")); return; }
+      var b = e.target.closest("button"); if (!b) return;
       if (b.parentNode.hasAttribute("data-stufen")){ z.stufe = b.getAttribute("data-s"); b.parentNode.querySelectorAll("button").forEach(function(x){ x.classList.toggle("an", x === b); }); return; }
       if (b.classList.contains("preset")){ sek.querySelector(".eingabe").value = b.getAttribute("data-t"); start(t); return; }
       var a = b.getAttribute("data-a"); if (a) aktion(t, a); });
-    if (t.art === "vorfuehrer") sek.querySelector(".eingabe").addEventListener("keydown", function(e){ if (e.key === "Enter") start(t); });
+    if (t.art !== "blitz") sek.querySelector(".eingabe").addEventListener("keydown", function(e){ if (e.key === "Enter") start(t); });
   });
 
   function zeige(id){ aktiv = TRAINER.filter(function(t){ return t.id === id; })[0] || TRAINER[0];
@@ -210,7 +225,9 @@ function starte(){
   function start(t){ var sek = document.getElementById(t.id), z = zustand[t.id], info = sek.querySelector(".info");
     var a; try { a = t.parse(sek.querySelector(".eingabe").value); } catch (err){ a = {fehler: "Das kann ich nicht lesen."}; }
     if (!a || a.fehler){ info.textContent = (a && a.fehler) || "Das kann ich nicht lesen."; info.classList.add("fehler"); return; }
-    info.classList.remove("fehler"); info.textContent = a.hinweis || "Mit „Nächster Schritt ▸“ (oder →) geht es weiter.";
+    info.classList.remove("fehler");
+    if (t.art === "werkzeug"){ z.aufgabe = a; z.w = t.anfang ? t.anfang(a) : {}; z.verlauf = []; z.hinweis = a.hinweis || ""; wMale(t); return; }
+    info.textContent = a.hinweis || "Mit „Nächster Schritt ▸“ (oder →) geht es weiter.";
     z.aufgabe = a; z.schritte = t.schritte(a); z.i = 0; male(t); }
   function male(t){ var sek = document.getElementById(t.id), z = zustand[t.id]; if (!z.aufgabe) return;
     var s = z.schritte.slice(0, z.i + 1), bild = "";
@@ -219,8 +236,21 @@ function starte(){
     sek.querySelector(".bild").innerHTML = bild;
     sek.querySelector(".tafelzeilen").innerHTML = s.filter(function(x){ return x.zeile; }).map(function(x){ return "<div>" + x.zeile + "</div>"; }).join("");
     sek.querySelector(".erkl").innerHTML = s.map(function(x){ return "<li>" + x.erkl + "</li>"; }).join(""); }
+  function wMale(t){ var sek = document.getElementById(t.id), z = zustand[t.id]; if (!z.aufgabe) return;
+    sek.querySelector(".aufgabe").innerHTML = t.titelVon ? t.titelVon(z.aufgabe) : "";
+    sek.querySelector(".werkbank").innerHTML = t.zeichne(z.aufgabe, z.w);
+    sek.querySelector(".info").innerHTML = (t.status ? t.status(z.aufgabe, z.w) : "") || z.hinweis || "";
+    sek.querySelector('[data-a="zurueck"]').disabled = !z.verlauf.length; }
+  function werk(t, wert){ var z = zustand[t.id]; if (!z.aufgabe) return; var vor = JSON.stringify(z.w);
+    if (t.aktion(z.aufgabe, z.w, wert) === false) return; z.verlauf.push(vor); wMale(t); }
   function aktion(t, a){ var z = zustand[t.id], sek = document.getElementById(t.id);
-    if (t.art === "vorfuehrer"){
+    if (t.art === "werkzeug"){
+      if (a === "start") start(t);
+      else if (a === "zurueck" && z.aufgabe && z.verlauf.length){ z.w = JSON.parse(z.verlauf.pop()); wMale(t); }
+      else if (a === "neustart" && z.aufgabe){ z.w = t.anfang ? t.anfang(z.aufgabe) : {}; z.verlauf = []; wMale(t); }
+      else if (a === "loesen" && z.aufgabe && t.loesen){ z.verlauf.push(JSON.stringify(z.w)); t.loesen(z.aufgabe, z.w); wMale(t); }
+      else if ((a === "zufall" || a === "neu") && t.zufall){ sek.querySelector(".eingabe").value = t.zufall(z.stufe); start(t); }
+    } else if (t.art === "vorfuehrer"){
       if (a === "start") start(t);
       else if (a === "weiter" && z.aufgabe && z.i < z.schritte.length - 1){ z.i++; male(t); }
       else if (a === "zurueck" && z.aufgabe && z.i > 0){ z.i--; male(t); }
@@ -243,6 +273,14 @@ function starte(){
   document.addEventListener("keydown", function(e){
     if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
     var k = e.key, t = aktiv; if (!t) return;
+    if (t.art === "werkzeug"){
+      var wz = e.target.closest ? e.target.closest("[data-w]") : null;
+      if ((k === "Enter" || k === " ") && wz && wz.tagName !== "BUTTON"){ e.preventDefault(); werk(t, wz.getAttribute("data-w")); return; }
+      if (k === "ArrowLeft"){ aktion(t, "zurueck"); return; }
+      if (k === "n" || k === "N"){ aktion(t, "zufall"); return; }
+      if (k === "a" || k === "A"){ aktion(t, "loesen"); return; }
+      if (k === "ArrowRight" || k === " " || k === "Enter") return;
+    }
     if (k === "ArrowRight" || k === " "){ e.preventDefault(); var offen = t.art === "blitz" && zustand[t.id].aufgabe && document.getElementById(t.id).querySelector(".loesung").innerHTML !== "";
       aktion(t, t.art === "vorfuehrer" ? "weiter" : (zustand[t.id].aufgabe && !offen ? "auf" : "neu")); }
     else if (k === "ArrowLeft") aktion(t, "zurueck");
@@ -256,7 +294,14 @@ function starte(){
   var fehler = [], n = 0;
   TRAINER.forEach(function(t){
     try {
-      if (t.art === "vorfuehrer"){
+      if (t.art === "werkzeug"){
+        var wpr = function(tx, lab){ var a = t.parse(tx); n++;
+          if (!a || a.fehler){ fehler.push(t.titel + " – " + lab + ": nicht lesbar: " + tx); return false; }
+          var w = t.anfang ? t.anfang(a) : {}; t.zeichne(a, w); if (t.loesen){ t.loesen(a, w); t.zeichne(a, w); }
+          if (t.pruefe && !t.pruefe(a, w)){ fehler.push(t.titel + " – " + lab + ": Prüfung falsch"); return false; } return true; };
+        (t.presets || []).concat([{label: "Beispiel", text: t.eingabe.beispiel}]).forEach(function(p){ wpr(p.text, p.label); });
+        if (t.zufall) STUFEN.forEach(function(s){ for (var i = 0; i < 300; i++) if (!wpr(t.zufall(s[0]), "Zufall " + s[1])) break; });
+      } else if (t.art === "vorfuehrer"){
         (t.presets || []).concat([{label: "Beispiel", text: t.eingabe.beispiel}]).forEach(function(p){ var a = t.parse(p.text); n++;
           if (!a || a.fehler) fehler.push(t.titel + " – " + p.label + ": nicht lesbar"); else { t.schritte(a); if (t.pruefe && !t.pruefe(a)) fehler.push(t.titel + " – " + p.label + ": Prüfung falsch"); } });
         if (t.zufall) STUFEN.forEach(function(s){ for (var i = 0; i < 300; i++){ var tx = t.zufall(s[0]), a = t.parse(tx); n++;
@@ -270,7 +315,7 @@ function starte(){
   else st.textContent = "Selbsttest ✓ " + n + " Aufgaben geprüft";
   document.title = NAME + " – " + THEMA; document.querySelector("header h1").textContent = NAME + " – " + THEMA;
   zeige(TRAINER[0].id);
-  TRAINER.forEach(function(t){ if (t.art === "vorfuehrer") start(t); });
+  TRAINER.forEach(function(t){ if (t.art !== "blitz") start(t); });
 }
 
 /* ═════════ Baukasten: Code einlesen, starten, speichern ═════════ */
