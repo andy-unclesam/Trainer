@@ -179,7 +179,7 @@ var TRAINER = [
       if (a.n > 99999) return {fehler: "Bitte höchstens fünfstellige Zahlen."};
       return {n: a.n}; },
     titelVon: function(a){ return "Zerlege " + nf(a.n) + " mit dem Faktorbaum."; },
-    anfang: function(a){ return {b: {v: a.n, k: null}, sel: pfPrim(a.n) ? null : "", pot: false, start: null}; },
+    anfang: function(a){ return {b: {v: a.n, k: null}, sel: null, pot: false, start: null}; },   /* Start mit gestricheltem Kreis: keine Zerlegung vorschlagen, bevor das Kind die Zahl antippt */
     zeichne: function(a, w){ var o = wzSvg(w), off = wzOffen(w.b, "", []);
       if (w.sel !== null){ var x = wzKnoten(w, w.sel);
         o += '<div class="zeile"><span class="lbl">' + nf(x.v) + ' zerlegen in:</span>' + pfPaare(x.v).map(function(p){ return '<button class="preset" data-w="z:' + p[0] + '">' + nf(p[0]) + " · " + nf(p[1]) + '</button>'; }).join("") + '</div>'; }
@@ -192,7 +192,7 @@ var TRAINER = [
     aktion: function(a, w, wert){ var t = wert.split(":");
       if (t[0] === "n"){ w.sel = w.sel === t[1] ? null : t[1]; return true; }
       if (t[0] === "z" && w.sel !== null){ var x = wzKnoten(w, w.sel), f = +t[1]; if (x.k || x.v % f !== 0 || f < 2 || f === x.v) return false;
-        wzSplit(w, w.sel, f); var off = wzOffen(w.b, "", []); w.sel = off.length === 1 ? off[0] : null;
+        wzSplit(w, w.sel, f); var off = wzOffen(w.b, "", []); w.sel = null;   /* nächste Zahl wählt das Kind selbst */
         if (!off.length && w.start){ var l = PF_STARTS[a.n] = PF_STARTS[a.n] || []; if (l.indexOf(w.start) < 0) l.push(w.start); }
         return true; }
       if (t[0] === "pot"){ w.pot = true; return true; }
